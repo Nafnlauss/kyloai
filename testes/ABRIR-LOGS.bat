@@ -1,1 +1,0 @@
-start https://kyloai-5v0x3xjdh-nafnlaus-projects.vercel.app/_logs

@@ -1,1 +1,0 @@
-cd .. && npm i nodemailer @types/nodemailer && npm run build

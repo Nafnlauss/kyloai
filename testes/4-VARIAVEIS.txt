@@ -1,4 +1,0 @@
-DATABASE_URL=postgresql://postgres:m3b1%23D%5E7%26W9%2AypgzGhCv@db.snfxczgjpnydysccigps.supabase.co:5432/postgres
-NEXTAUTH_SECRET=xPq3Rt7Uv9WcYa2Bd4FgHj6Km8NpQs0TvXz1Ac3Ef5Gi=
-NEXTAUTH_URL=https://kyloai.vercel.app
-NEXT_PUBLIC_APP_URL=https://kyloai.vercel.app
