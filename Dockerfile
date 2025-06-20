@@ -28,6 +28,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=1
 
+# Set dummy environment variables for build time only
+ENV DATABASE_URL="postgresql://user:pass@localhost:5432/db"
+ENV NEXTAUTH_SECRET="build-time-secret"
+ENV NEXT_PUBLIC_SUPABASE_URL="https://example.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="example-key"
+
 # Build the application
 RUN npm run build
 

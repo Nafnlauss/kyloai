@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe/stripe'
 import { prisma } from '@/lib/prisma'
 import { sendPurchaseConfirmationEmail, sendSubscriptionRenewalEmail } from '@/lib/email/email-service'
-import Stripe from 'stripe'
+import type Stripe from 'stripe'
 
 const relevantEvents = new Set([
   'checkout.session.completed',
@@ -14,13 +13,20 @@ const relevantEvents = new Set([
 ])
 
 export async function POST(req: NextRequest) {
+  // Check for required environment variables at runtime
+  if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+    console.error('Missing Stripe configuration')
+    return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+  }
+
+  const { stripe } = await import('@/lib/stripe/stripe')
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
   
   let event: Stripe.Event
   
   try {
-    event = stripe.webhooks.constructEvent(
+    event = stripe().webhooks.constructEvent(
       body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
