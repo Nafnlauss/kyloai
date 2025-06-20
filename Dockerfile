@@ -10,8 +10,8 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with legacy peer deps due to React 19
+RUN npm ci --legacy-peer-deps
 
 # Generate Prisma Client
 RUN npx prisma generate
