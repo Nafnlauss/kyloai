@@ -70,7 +70,20 @@ export const videoWorker = new Worker<VideoGenerationJobData>(
           const status = await videoProvider.checkStatus(jobId)
           
           // Update job progress
-          await job.updateProgress(status.progress || (attempts / maxAttempts) * 100)
+          const progress = status.progress || (attempts / maxAttempts) * 100
+          await job.updateProgress(progress)
+          
+          // Emit real-time update via Socket.IO
+          try {
+            const { emitVideoStatusUpdate } = await import('@/lib/socket/socket-server')
+            emitVideoStatusUpdate(userId, videoId, {
+              videoId,
+              status: 'PROCESSING',
+              progress,
+            })
+          } catch (error) {
+            console.error('Failed to emit socket update:', error)
+          }
           
           if (status.state === 'COMPLETED' && status.url) {
             // Video generation completed successfully
@@ -97,6 +110,28 @@ export const videoWorker = new Worker<VideoGenerationJobData>(
                 videoUrl: status.url,
                 thumbnailUrl: status.thumbnailUrl,
               })
+            }
+            
+            // Emit completion status
+            try {
+              const { emitVideoStatusUpdate, emitNotification } = await import('@/lib/socket/socket-server')
+              emitVideoStatusUpdate(userId, videoId, {
+                videoId,
+                status: 'COMPLETED',
+                progress: 100,
+                url: status.url,
+                thumbnailUrl: status.thumbnailUrl,
+              })
+              
+              emitNotification(userId, {
+                id: `video-completed-${videoId}`,
+                type: 'success',
+                title: 'Vídeo pronto!',
+                message: 'Seu vídeo foi gerado com sucesso.',
+                timestamp: new Date(),
+              })
+            } catch (error) {
+              console.error('Failed to emit socket update:', error)
             }
             
             return { success: true, url: status.url }
