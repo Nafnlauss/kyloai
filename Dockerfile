@@ -6,12 +6,13 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
+# Copy package files and .npmrc
 COPY package*.json ./
+COPY .npmrc ./
 COPY prisma ./prisma/
 
-# Install dependencies with legacy peer deps due to React 19
-RUN npm ci --legacy-peer-deps
+# Install dependencies
+RUN npm ci
 
 # Generate Prisma Client
 RUN npx prisma generate
@@ -22,6 +23,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV SKIP_ENV_VALIDATION=1
+
 # Build the application
 RUN npm run build
 
@@ -30,6 +36,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs
@@ -40,9 +47,12 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
 
-# Copy node_modules for Prisma
-COPY --from=deps /app/node_modules ./node_modules
+# Copy node_modules for Prisma (only the client)
+RUN mkdir -p node_modules/@prisma
+COPY --from=deps /app/node_modules/@prisma/client ./node_modules/@prisma/client
+COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 
 USER nextjs
 
