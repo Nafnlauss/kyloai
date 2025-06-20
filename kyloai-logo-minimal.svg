@@ -1,0 +1,18 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Versão minimalista e moderna -->
+  <text x="10" y="42" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="800">
+    <tspan fill="#ffffff">kylo</tspan><tspan fill="url(#purpleGradient)">ai</tspan>
+  </text>
+  
+  <!-- Tagline opcional -->
+  <text x="10" y="55" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="400" fill="#8B5CF6" opacity="0.8">
+    YOUR AI COMPANION
+  </text>
+</svg>

@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KyloAI - AI Video Generation Platform
 
-## Getting Started
+A modern web platform for creating AI-generated videos using Luma Dream Machine and Kling AI APIs.
 
-First, run the development server:
+## 🚀 Features
 
+- **AI Video Generation**: Create videos from text prompts using multiple AI providers
+- **Multiple AI Models**: Choose between Luma V1/V2 and Kling V1/V2.1
+- **Subscription System**: Monthly and yearly plans with Stripe integration
+- **Credit System**: Pay-as-you-go credit purchases
+- **Admin Dashboard**: Complete admin panel for user and content management
+- **Email Notifications**: Automated emails for purchases, video completion, etc.
+- **Real-time Updates**: WebSocket integration for live video processing status
+- **Security**: Enterprise-grade security with OWASP compliance
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 15.3.4 with App Router
+- **Language**: TypeScript
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: NextAuth.js v5
+- **UI**: Tailwind CSS + shadcn/ui
+- **Payments**: Stripe
+- **Email**: Nodemailer with React Email
+- **Real-time**: Socket.io
+- **Queue**: BullMQ with Redis
+- **Monitoring**: Sentry
+
+## 📋 Prerequisites
+
+- Node.js 18+
+- PostgreSQL or SQLite
+- Redis (for queue system)
+- Stripe account
+- Email SMTP service
+
+## 🔧 Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/ai-video-hub.git
+cd ai-video-hub
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+pnpm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Configure your `.env.local` file with:
+- Database connection
+- NextAuth secret
+- Stripe API keys
+- Email SMTP settings
+- AI provider API keys
 
-## Learn More
+5. Run database migrations:
+```bash
+pnpm prisma migrate dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Seed the database:
+```bash
+pnpm prisma db seed
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+7. Start the development server:
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Deployment
 
-## Deploy on Vercel
+### Vercel (Recommended)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Push your code to GitHub
+2. Import the project on Vercel
+3. Configure environment variables
+4. Deploy!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Docker
+
+```bash
+docker build -t ai-video-hub .
+docker run -p 3000:3000 ai-video-hub
+```
+
+## 📝 Environment Variables
+
+Key environment variables needed:
+
+```env
+# Database
+DATABASE_URL="postgresql://..."
+
+# Authentication
+NEXTAUTH_SECRET="your-secret"
+NEXTAUTH_URL="http://localhost:3000"
+
+# Stripe
+STRIPE_SECRET_KEY="sk_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+
+# AI Providers
+LUMA_API_KEY="..."
+KLING_API_KEY="..."
+
+# Email
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT="587"
+SMTP_USER="your-email"
+SMTP_PASSWORD="your-password"
+```
+
+## 🔐 Security
+
+This project implements:
+- OWASP Top 10 protection
+- Rate limiting
+- Input validation
+- XSS prevention
+- CSRF protection
+- Secure headers
+- Audit logging
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🤝 Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting PRs.
+
+## 📧 Support
+
+For support, email support@kyloai.com or open an issue on GitHub.

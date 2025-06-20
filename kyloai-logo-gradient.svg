@@ -1,0 +1,23 @@
+<svg width="240" height="80" viewBox="0 0 240 80" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Logo principal -->
+  <text x="20" y="55" font-family="Arial Black, sans-serif" font-size="48" font-weight="900" fill="url(#gradient)">
+    KYLO<tspan fill="#ffffff" opacity="0.95">AI</tspan>
+  </text>
+  
+  <!-- Ponto decorativo -->
+  <circle cx="205" cy="50" r="4" fill="#8B5CF6" filter="url(#glow)"/>
+</svg>

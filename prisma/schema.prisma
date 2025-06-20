@@ -1,0 +1,321 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "../docs/database-erd.svg"
+}
+
+// Modelos com campos de segurança e auditoria
+model User {
+  id                String         @id @default(cuid())
+  email             String         @unique
+  emailVerified     DateTime?
+  name              String?
+  passwordHash      String?        // Bcrypt hash
+  image             String?
+  credits           Int            @default(10) // Créditos grátis iniciais
+  role              Role           @default(USER)
+  isActive          Boolean        @default(true)
+  
+  // Segurança
+  twoFactorEnabled  Boolean        @default(false)
+  twoFactorSecret   String?        // Encrypted
+  lastLoginAt       DateTime?
+  lastLoginIp       String?
+  failedLoginAttempts Int          @default(0)
+  lockedUntil       DateTime?
+  
+  // Relacionamentos
+  subscription      Subscription?
+  transactions      Transaction[]
+  videos            Video[]
+  sessions          Session[]
+  accounts          Account[]
+  auditLogs         AuditLog[]
+  apiKeys           ApiKey[]
+  
+  // Pagamentos
+  stripeCustomerId  String?        @unique
+  asaasCustomerId   String?        @unique
+  
+  // Timestamps
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  @@index([email])
+  @@index([stripeCustomerId])
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  ipAddress    String?
+  userAgent    String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionToken])
+  @@index([userId])
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  key         String    @unique // Hashed
+  name        String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  scopes      String    // JSON array of allowed scopes
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  
+  @@index([key])
+  @@index([userId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  action      String
+  resource    String
+  resourceId  String?
+  metadata    String?  // JSON
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+model Subscription {
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  planId               String
+  status               SubscriptionStatus
+  interval             BillingInterval
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean         @default(false)
+  canceledAt           DateTime?
+  
+  // Stripe
+  stripeSubscriptionId String?         @unique
+  stripePriceId        String?
+  
+  // Timestamps
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  
+  // Relacionamentos
+  user                 User            @relation(fields: [userId], references: [id])
+  plan                 Plan            @relation(fields: [planId], references: [id])
+  
+  @@index([stripeSubscriptionId])
+  @@index([status])
+}
+
+model Plan {
+  id              String          @id @default(cuid())
+  name            String          @unique
+  displayName     String
+  description     String?
+  monthlyPrice    Int             // em centavos
+  yearlyPrice     Int?            // em centavos
+  monthlyCredits  Int
+  features        String          // JSON
+  isActive        Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  
+  // Limites
+  maxVideoDuration     Int        // segundos
+  maxVideoResolution   String     @default("720p")
+  allowCommercialUse   Boolean    @default(false)
+  allowHD              Boolean    @default(false)
+  watermark            Boolean    @default(true)
+  priorityQueue        Boolean    @default(false)
+  
+  // Relacionamentos
+  subscriptions   Subscription[]
+  
+  @@index([name])
+}
+
+model Transaction {
+  id                    String          @id @default(cuid())
+  userId                String
+  amount                Int             // em centavos
+  currency              String          @default("BRL")
+  credits               Int?
+  type                  TransactionType
+  status                PaymentStatus
+  gateway               PaymentGateway
+  
+  // IDs externos
+  stripePaymentIntentId String?         @unique
+  asaasPaymentId        String?         @unique
+  
+  // Metadados
+  metadata              String?         // JSON
+  description           String?
+  invoiceUrl            String?
+  receiptUrl            String?
+  failureReason         String?
+  
+  // Timestamps
+  createdAt             DateTime        @default(now())
+  processedAt           DateTime?
+  
+  // Relacionamentos
+  user                  User            @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Video {
+  id              String          @id @default(cuid())
+  userId          String
+  prompt          String          @db.Text
+  enhancedPrompt  String?         @db.Text // Prompt melhorado pela IA
+  provider        VideoProvider
+  providerJobId   String?
+  status          VideoStatus
+  
+  // Arquivos
+  url             String?
+  thumbnailUrl    String?
+  previewUrl      String?         // Preview animado
+  
+  // Metadados
+  duration        Int?            // segundos
+  resolution      String?
+  aspectRatio     String?
+  fileSize        Int?            // bytes
+  mimeType        String?
+  
+  // Custos e configurações
+  creditsUsed     Int
+  isPublic        Boolean         @default(false)
+  allowDownload   Boolean         @default(true)
+  views           Int             @default(0)
+  
+  // Processamento
+  processingStartedAt  DateTime?
+  processingEndedAt    DateTime?
+  errorMessage         String?
+  retryCount           Int        @default(0)
+  
+  // Metadados extras
+  metadata        String?         // JSON
+  tags            String?         // JSON array
+  
+  // Timestamps
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relacionamentos
+  user            User            @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@index([provider])
+  @@index([createdAt])
+}
+
+// Enums
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum VideoProvider {
+  LUMA_V1    // Luma V1 - PRO (3 credits/sec)
+  LUMA_V2    // Luma V2 - BEST (5 credits/sec)
+  KLING_V1   // Kling V1 - PRO (5 credits/sec)
+  KLING_V2   // Kling V2.1 - BEST (10 credits/sec)
+}
+
+enum VideoStatus {
+  PENDING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  PAUSED
+  TRIALING
+  INCOMPLETE
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+  LIFETIME
+}
+
+enum TransactionType {
+  SUBSCRIPTION
+  SUBSCRIPTION_RENEWAL
+  ONE_TIME_PURCHASE
+  CREDIT_PURCHASE
+  REFUND
+  CHARGEBACK
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  DISPUTED
+  CANCELLED
+}
+
+enum PaymentGateway {
+  STRIPE
+  ASAAS
+  MANUAL
+  PROMOTIONAL
+}
