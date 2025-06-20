@@ -1,4 +1,5 @@
 export default { 
   typescript: { ignoreBuildErrors: true }, 
-  eslint: { ignoreDuringBuilds: true }
+  eslint: { ignoreDuringBuilds: true },
+  output: 'standalone'
 }

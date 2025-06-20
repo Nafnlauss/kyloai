@@ -1,40 +1,37 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { auth } from "@/auth"
+import { NextResponse } from "next/server"
 
-const PUBLIC_PATHS = [
-  '/',
-  '/auth/signin',
-  '/auth/signup',
-  '/auth/error',
-  '/auth/verify-request',
-  '/auth/forgot-password',
-  '/api/auth',
-  '/api/auth/register',
-]
+export default auth((req) => {
+  const { pathname } = req.nextUrl
+  const isLoggedIn = !!req.auth
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+  // Public paths that don't require authentication
+  const PUBLIC_PATHS = [
+    '/',
+    '/auth/signin',
+    '/auth/signup',
+    '/auth/error',
+    '/auth/verify-request',
+    '/auth/forgot-password',
+    '/api/auth',
+    '/api/auth/register',
+  ]
+
+  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path))
+  const isStaticPath = pathname.startsWith('/_next') || pathname.startsWith('/static')
   
-  // Allow public paths
-  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+  // Allow public and static paths
+  if (isPublicPath || isStaticPath) {
     return NextResponse.next()
   }
-  
-  // Allow static files
-  if (pathname.startsWith('/_next') || pathname.startsWith('/static')) {
-    return NextResponse.next()
-  }
-  
-  // Check authentication
-  const token = await getToken({ req: request })
-  
-  if (!token) {
-    const signInUrl = new URL('/auth/signin', request.url)
+
+  // Redirect to signin if not authenticated
+  if (!isLoggedIn) {
+    const signInUrl = new URL('/auth/signin', req.url)
     signInUrl.searchParams.set('callbackUrl', pathname)
     return NextResponse.redirect(signInUrl)
   }
-  
+
   // Add security headers
   const response = NextResponse.next()
   
@@ -45,7 +42,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
   
   return response
-}
+})
 
 export const config = {
   matcher: [
