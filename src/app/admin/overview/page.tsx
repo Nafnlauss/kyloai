@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { getAdminStats } from '@/lib/admin/stats'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminOverviewPage() {
   const stats = await getAdminStats()
 

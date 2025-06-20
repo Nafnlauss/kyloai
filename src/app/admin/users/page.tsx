@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Search, UserPlus } from 'lucide-react'
 import { useDebounce } from '@/hooks/use-debounce'
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const debouncedSearch = useDebounce(searchQuery, 500)

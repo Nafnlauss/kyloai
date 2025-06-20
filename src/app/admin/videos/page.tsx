@@ -42,6 +42,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
+export const dynamic = 'force-dynamic'
+
 // Types
 interface Video {
   id: string
