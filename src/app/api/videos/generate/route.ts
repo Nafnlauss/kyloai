@@ -7,12 +7,10 @@ import { z } from 'zod'
 
 const generateVideoSchema = z.object({
   prompt: z.string().min(10).max(2500),
-  provider: z.enum(['LUMA', 'KLING']),
+  provider: z.enum(['LUMA_V1', 'LUMA_V2', 'KLING_V1', 'KLING_V2']),
   aspectRatio: z.enum(['16:9', '9:16', '1:1']).default('16:9'),
-  duration: z.number().min(3).max(10).default(5),
+  duration: z.number().min(1).max(30).default(5),
   enhancePrompt: z.boolean().default(true),
-  modelVersion: z.string().optional(), // For Kling
-  mode: z.enum(['std', 'pro']).optional(), // For Kling
 })
 
 export async function POST(request: NextRequest) {
@@ -37,13 +35,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    // Calculate credit cost
-    const creditCost = validatedData.provider === 'LUMA' ? 5 : 7
-    
-    // For Kling PRO mode, double the credits
-    if (validatedData.provider === 'KLING' && validatedData.mode === 'pro') {
-      creditCost * 2
-    }
+    // Import credit costs from config
+    const { calculateCredits } = await import('@/lib/video-providers/api-config')
+    const creditCost = calculateCredits(validatedData.provider, validatedData.duration)
 
     if (user.credits < creditCost) {
       return NextResponse.json({ 
@@ -63,11 +57,10 @@ export async function POST(request: NextRequest) {
         aspectRatio: validatedData.aspectRatio,
         duration: validatedData.duration,
         creditsUsed: creditCost,
-        metadata: {
-          modelVersion: validatedData.modelVersion,
-          mode: validatedData.mode,
+        metadata: JSON.stringify({
           enhancePrompt: validatedData.enhancePrompt,
-        },
+          requestedAt: new Date().toISOString(),
+        }),
       },
     })
 
@@ -98,8 +91,6 @@ export async function POST(request: NextRequest) {
         aspectRatio: validatedData.aspectRatio,
         duration: validatedData.duration,
         enhancePrompt: validatedData.enhancePrompt,
-        modelVersion: validatedData.modelVersion,
-        mode: validatedData.mode as 'std' | 'pro',
       })
 
       // Update video with provider job ID
@@ -113,8 +104,14 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      // TODO: Queue background job to poll status
-      // await videoQueue.add('poll-status', { videoId: video.id, jobId: job.id })
+      // Queue background job to poll status
+      const { queueVideoGeneration } = await import('@/lib/queue/video-queue')
+      await queueVideoGeneration({
+        videoId: video.id,
+        userId: session.user.id,
+        provider: validatedData.provider,
+        jobId: job.id,
+      })
 
       return NextResponse.json({
         videoId: video.id,

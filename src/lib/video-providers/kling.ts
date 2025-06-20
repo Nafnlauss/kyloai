@@ -4,11 +4,13 @@ import crypto from 'crypto'
 export class KlingProvider implements VideoProvider {
   private accessKey: string
   private secretKey: string
+  private version: 'v1' | 'v2'
   private baseUrl = 'https://api-singapore.klingai.com/v1'
 
-  constructor(accessKey: string, secretKey: string) {
+  constructor(accessKey: string, secretKey: string, version: 'v1' | 'v2' = 'v1') {
     this.accessKey = accessKey
     this.secretKey = secretKey
+    this.version = version
   }
 
   async generate(prompt: string, options: VideoGenerationOptions): Promise<GenerationJob> {
@@ -30,12 +32,17 @@ export class KlingProvider implements VideoProvider {
       },
       body: JSON.stringify({
         prompt: options.enhancePrompt ? await this.enhancePrompt(prompt) : prompt,
-        model_version: options.modelVersion || 'v2.1',
-        mode: options.mode || 'std', // std or pro
+        model_version: this.version === 'v1' ? 'v1' : 'v2.1',
+        mode: this.version === 'v1' ? 'std' : 'pro', // V1 uses standard, V2 uses pro mode
         aspect_ratio: this.mapAspectRatio(options.aspectRatio),
         duration: options.duration || 5,
-        cfg_scale: 7,
+        cfg_scale: this.version === 'v1' ? 7 : 9, // Higher cfg_scale for V2
         negative_prompt: options.negativePrompt || '',
+        // V2 specific quality enhancements
+        ...(this.version === 'v2' && {
+          num_inference_steps: 50, // More steps for better quality
+          use_refiner: true, // Enable refiner model for V2
+        }),
       }),
     })
 
@@ -48,7 +55,7 @@ export class KlingProvider implements VideoProvider {
     
     return {
       id: data.task_id,
-      provider: 'KLING',
+      provider: this.version === 'v1' ? 'KLING_V1' : 'KLING_V2',
       status: 'PENDING',
       prompt: prompt,
       createdAt: new Date(),
@@ -213,7 +220,7 @@ export class KlingProvider implements VideoProvider {
     
     return {
       id: data.task_id,
-      provider: 'KLING',
+      provider: this.version === 'v1' ? 'KLING_V1' : 'KLING_V2',
       status: 'PENDING',
       prompt: prompt,
       createdAt: new Date(),

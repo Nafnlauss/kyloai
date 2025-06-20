@@ -2,10 +2,16 @@ import { VideoProvider, VideoGenerationOptions, GenerationJob, GenerationStatus 
 
 export class LumaProvider implements VideoProvider {
   private apiKey: string
-  private baseUrl = 'https://api.lumalabs.ai/dream-machine/v1'
+  private version: 'v1' | 'v2'
+  private baseUrl: string
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, version: 'v1' | 'v2' = 'v1') {
     this.apiKey = apiKey
+    this.version = version
+    // V1 uses standard endpoint, V2 uses premium endpoint with better quality
+    this.baseUrl = version === 'v1' 
+      ? 'https://api.lumalabs.ai/dream-machine/v1' 
+      : 'https://api.lumalabs.ai/dream-machine/v2'
   }
 
   async generate(prompt: string, options: VideoGenerationOptions): Promise<GenerationJob> {
@@ -19,6 +25,12 @@ export class LumaProvider implements VideoProvider {
         prompt: options.enhancePrompt ? await this.enhancePrompt(prompt) : prompt,
         aspect_ratio: options.aspectRatio || '16:9',
         loop: false,
+        // V2 specific parameters for better quality
+        ...(this.version === 'v2' && {
+          quality: 'high',
+          motion_intensity: 'medium',
+          camera_motion: 'auto',
+        }),
       }),
     })
 
@@ -31,7 +43,7 @@ export class LumaProvider implements VideoProvider {
     
     return {
       id: data.id,
-      provider: 'LUMA',
+      provider: this.version === 'v1' ? 'LUMA_V1' : 'LUMA_V2',
       status: this.mapStatus(data.state),
       prompt: data.request.prompt,
       createdAt: new Date(data.created_at),

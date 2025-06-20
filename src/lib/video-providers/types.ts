@@ -9,7 +9,7 @@ export interface VideoGenerationOptions {
 
 export interface GenerationJob {
   id: string
-  provider: 'LUMA' | 'KLING'
+  provider: 'LUMA_V1' | 'LUMA_V2' | 'KLING_V1' | 'KLING_V2'
   status: string
   prompt: string
   createdAt: Date
