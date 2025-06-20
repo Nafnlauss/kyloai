@@ -7,14 +7,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY .npmrc ./
 
-# Install dependencies
-RUN npm ci
-
-# Copy prisma schema
+# Copy prisma schema BEFORE npm install
 COPY prisma ./prisma/
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Install dependencies (this will also run postinstall and generate prisma)
+RUN npm ci
 
 # Copy all files
 COPY . .
