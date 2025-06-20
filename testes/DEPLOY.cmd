@@ -1,0 +1,1 @@
+cd testes && FIX.bat
