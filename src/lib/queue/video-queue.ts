@@ -4,35 +4,83 @@ import { prisma } from '@/lib/prisma'
 import { getVideoProvider } from '@/lib/video-providers'
 import { sendVideoCompletedEmail, sendVideoFailedEmail } from '@/lib/email/email-service'
 
-// Create Redis connection
-const connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false,
-})
+// Lazy-loaded Redis connection
+let connection: Redis | null = null
+let videoQueue: Queue | null = null
+let videoQueueEvents: QueueEvents | null = null
 
-// Create video processing queue
-export const videoQueue = new Queue('video-generation', {
-  connection,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 5000,
-    },
-    removeOnComplete: {
-      age: 3600, // Keep completed jobs for 1 hour
-      count: 100, // Keep max 100 completed jobs
-    },
-    removeOnFail: {
-      age: 24 * 3600, // Keep failed jobs for 24 hours
-    },
-  },
-})
+// Check if Redis should be initialized (not during build)
+const shouldInitializeRedis = () => {
+  // Skip Redis initialization during build
+  if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL) {
+    return false
+  }
+  // Skip if explicitly disabled
+  if (process.env.SKIP_REDIS === 'true') {
+    return false
+  }
+  return true
+}
 
-// Create queue events for monitoring
-export const videoQueueEvents = new QueueEvents('video-generation', {
-  connection: connection.duplicate(),
-})
+// Get or create Redis connection
+function getRedisConnection(): Redis {
+  if (!connection && shouldInitializeRedis()) {
+    connection = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+      maxRetriesPerRequest: null,
+      enableReadyCheck: false,
+    })
+  }
+  
+  if (!connection) {
+    throw new Error('Redis connection not available')
+  }
+  
+  return connection
+}
+
+// Get or create video queue
+export function getVideoQueue(): Queue {
+  if (!videoQueue && shouldInitializeRedis()) {
+    videoQueue = new Queue('video-generation', {
+      connection: getRedisConnection(),
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: {
+          age: 3600, // Keep completed jobs for 1 hour
+          count: 100, // Keep max 100 completed jobs
+        },
+        removeOnFail: {
+          age: 24 * 3600, // Keep failed jobs for 24 hours
+        },
+      },
+    })
+  }
+  
+  if (!videoQueue) {
+    throw new Error('Video queue not available')
+  }
+  
+  return videoQueue
+}
+
+// Get or create queue events
+export function getVideoQueueEvents(): QueueEvents {
+  if (!videoQueueEvents && shouldInitializeRedis()) {
+    videoQueueEvents = new QueueEvents('video-generation', {
+      connection: getRedisConnection().duplicate(),
+    })
+  }
+  
+  if (!videoQueueEvents) {
+    throw new Error('Video queue events not available')
+  }
+  
+  return videoQueueEvents
+}
 
 // Job data types
 interface VideoGenerationJobData {
@@ -42,10 +90,15 @@ interface VideoGenerationJobData {
   jobId: string
 }
 
-// Process video generation jobs
-export const videoWorker = new Worker<VideoGenerationJobData>(
-  'video-generation',
-  async (job: Job<VideoGenerationJobData>) => {
+// Lazy-loaded worker
+let videoWorker: Worker<VideoGenerationJobData> | null = null
+
+// Get or create video worker
+export function getVideoWorker(): Worker<VideoGenerationJobData> {
+  if (!videoWorker && shouldInitializeRedis()) {
+    videoWorker = new Worker<VideoGenerationJobData>(
+      'video-generation',
+      async (job: Job<VideoGenerationJobData>) => {
     const { videoId, userId, provider, jobId } = job.data
     
     try {
@@ -192,7 +245,7 @@ export const videoWorker = new Worker<VideoGenerationJobData>(
     }
   },
   {
-    connection,
+    connection: getRedisConnection(),
     concurrency: 5, // Process up to 5 videos simultaneously
     limiter: {
       max: 100,
@@ -201,26 +254,40 @@ export const videoWorker = new Worker<VideoGenerationJobData>(
   }
 )
 
-// Worker event handlers
-videoWorker.on('completed', (job) => {
-  console.log(`Job ${job.id} completed successfully`)
-})
+    // Worker event handlers
+    videoWorker.on('completed', (job) => {
+      console.log(`Job ${job.id} completed successfully`)
+    })
 
-videoWorker.on('failed', (job, err) => {
-  console.error(`Job ${job?.id} failed:`, err)
-})
+    videoWorker.on('failed', (job, err) => {
+      console.error(`Job ${job?.id} failed:`, err)
+    })
 
-videoWorker.on('active', (job) => {
-  console.log(`Job ${job.id} is now active`)
-})
+    videoWorker.on('active', (job) => {
+      console.log(`Job ${job.id} is now active`)
+    })
 
-videoWorker.on('stalled', (job) => {
-  console.warn(`Job ${job} has stalled`)
-})
+    videoWorker.on('stalled', (job) => {
+      console.warn(`Job ${job} has stalled`)
+    })
+  }
+  
+  if (!videoWorker) {
+    throw new Error('Video worker not available')
+  }
+  
+  return videoWorker
+}
 
 // Add a job to the queue
 export async function queueVideoGeneration(data: VideoGenerationJobData) {
-  const job = await videoQueue.add('generate-video', data, {
+  if (!shouldInitializeRedis()) {
+    console.warn('Redis not available, skipping video queue')
+    return null
+  }
+  
+  const queue = getVideoQueue()
+  const job = await queue.add('generate-video', data, {
     priority: data.provider.includes('V2') ? 1 : 2, // V2 providers get higher priority
   })
   
@@ -229,7 +296,12 @@ export async function queueVideoGeneration(data: VideoGenerationJobData) {
 
 // Get job status
 export async function getJobStatus(jobId: string) {
-  const job = await videoQueue.getJob(jobId)
+  if (!shouldInitializeRedis()) {
+    return null
+  }
+  
+  const queue = getVideoQueue()
+  const job = await queue.getJob(jobId)
   
   if (!job) {
     return null
@@ -250,15 +322,43 @@ export async function getJobStatus(jobId: string) {
 
 // Clean up old jobs
 export async function cleanupOldJobs() {
-  const completed = await videoQueue.clean(1000, 1000, 'completed')
-  const failed = await videoQueue.clean(1000, 1000, 'failed')
+  if (!shouldInitializeRedis()) {
+    return
+  }
+  
+  const queue = getVideoQueue()
+  const completed = await queue.clean(1000, 1000, 'completed')
+  const failed = await queue.clean(1000, 1000, 'failed')
   
   console.log(`Cleaned up ${completed.length} completed and ${failed.length} failed jobs`)
 }
 
+// Initialize worker (call this when starting the server in production)
+export async function initializeWorker() {
+  if (!shouldInitializeRedis()) {
+    console.log('Redis not configured, skipping worker initialization')
+    return false
+  }
+  
+  try {
+    getVideoWorker()
+    console.log('Video worker initialized successfully')
+    return true
+  } catch (error) {
+    console.error('Failed to initialize video worker:', error)
+    return false
+  }
+}
+
 // Graceful shutdown
 export async function shutdownWorkers() {
-  await videoWorker.close()
-  await videoQueue.close()
-  await connection.quit()
+  if (videoWorker) {
+    await videoWorker.close()
+  }
+  if (videoQueue) {
+    await videoQueue.close()
+  }
+  if (connection) {
+    await connection.quit()
+  }
 }

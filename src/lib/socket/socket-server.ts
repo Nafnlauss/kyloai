@@ -12,7 +12,12 @@ export interface SocketWithAuth extends SocketIOServer {
 
 let io: SocketIOServer | null = null
 
-export function getSocketServer(httpServer?: HTTPServer): SocketIOServer {
+export function getSocketServer(httpServer?: HTTPServer): SocketIOServer | null {
+  // Skip Socket.IO initialization during build
+  if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL) {
+    return null
+  }
+  
   if (!io && httpServer) {
     io = new SocketIOServer(httpServer, {
       cors: {
@@ -78,10 +83,6 @@ export function getSocketServer(httpServer?: HTTPServer): SocketIOServer {
     })
   }
 
-  if (!io) {
-    throw new Error('Socket.IO server not initialized')
-  }
-
   return io
 }
 
@@ -89,12 +90,16 @@ export function getSocketServer(httpServer?: HTTPServer): SocketIOServer {
 
 export function emitToUser(userId: string, event: string, data: any) {
   const server = getSocketServer()
-  server.to(`user:${userId}`).emit(event, data)
+  if (server) {
+    server.to(`user:${userId}`).emit(event, data)
+  }
 }
 
 export function emitToVideo(videoId: string, event: string, data: any) {
   const server = getSocketServer()
-  server.to(`video:${videoId}`).emit(event, data)
+  if (server) {
+    server.to(`video:${videoId}`).emit(event, data)
+  }
 }
 
 export function emitVideoStatusUpdate(userId: string, videoId: string, status: {
@@ -107,11 +112,13 @@ export function emitVideoStatusUpdate(userId: string, videoId: string, status: {
 }) {
   const server = getSocketServer()
   
-  // Emitir para o usuário
-  server.to(`user:${userId}`).emit('video:status', status)
-  
-  // Emitir para quem está assistindo este vídeo específico
-  server.to(`video:${videoId}`).emit('video:status', status)
+  if (server) {
+    // Emitir para o usuário
+    server.to(`user:${userId}`).emit('video:status', status)
+    
+    // Emitir para quem está assistindo este vídeo específico
+    server.to(`video:${videoId}`).emit('video:status', status)
+  }
 }
 
 export function emitNotification(userId: string, notification: {
@@ -131,17 +138,21 @@ export function emitCreditsUpdate(userId: string, credits: number) {
 // Broadcast para todos os usuários conectados
 export function broadcast(event: string, data: any) {
   const server = getSocketServer()
-  server.emit(event, data)
+  if (server) {
+    server.emit(event, data)
+  }
 }
 
 // Desconectar usuário específico
 export function disconnectUser(userId: string) {
   const server = getSocketServer()
-  const sockets = server.sockets.sockets
-  
-  sockets.forEach((socket) => {
-    if ((socket as any).userId === userId) {
-      socket.disconnect(true)
-    }
-  })
+  if (server) {
+    const sockets = server.sockets.sockets
+    
+    sockets.forEach((socket) => {
+      if ((socket as any).userId === userId) {
+        socket.disconnect(true)
+      }
+    })
+  }
 }
