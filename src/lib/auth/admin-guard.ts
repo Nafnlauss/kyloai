@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/get-session'
 import { redirect } from 'next/navigation'
 import { authOptions } from './auth-options'
 

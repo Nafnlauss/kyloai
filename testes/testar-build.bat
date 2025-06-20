@@ -1,31 +1,31 @@
 @echo off
-cd ..
-
 echo ===================================
-echo  TESTANDO BUILD FINAL
+echo  TESTANDO BUILD LOCALMENTE PRIMEIRO
 echo ===================================
 echo.
 
+cd ..
+
+echo [1] Limpando cache...
+rmdir /s /q .next 2>nul
+rmdir /s /q .vercel 2>nul
+
+echo.
+echo [2] Instalando dependencias...
+npm install
+
+echo.
+echo [3] Testando build local...
 npm run build
 
-if %errorlevel% equ 0 (
-    echo.
-    echo ===================================
-    echo  BUILD FUNCIONOU COM SUCESSO!
-    echo ===================================
-    echo.
-    echo Agora execute: .\RESOLVER-TUDO.bat
-    echo.
-    echo Ou faca manualmente:
-    echo 1. git add .
-    echo 2. git commit -m "fix: add missing UI components"
-    echo 3. git push origin main
-    echo 4. Adicione as variaveis no Vercel
-    echo 5. vercel --prod
-) else (
-    echo.
-    echo [ERRO] Ainda ha erros no build.
-    echo Verifique os erros acima.
-)
-
+echo.
+echo ===================================
+echo.
+echo Se o build PASSOU localmente:
+echo   - Execute: vercel --prod
+echo.
+echo Se o build FALHOU localmente:
+echo   - Corrija os erros primeiro
+echo   - Me mostre o erro especifico
+echo.
 pause

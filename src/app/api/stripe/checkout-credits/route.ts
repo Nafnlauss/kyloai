@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/auth/get-session'
 import { authOptions } from '@/lib/auth/auth-options'
 import { createCheckoutSession, STRIPE_PRICES } from '@/lib/stripe/stripe'
 import { z } from 'zod'
