@@ -1,0 +1,3 @@
+cd ..
+vercel logs
+pause
