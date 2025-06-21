@@ -1,4 +1,6 @@
 import { baseTemplate } from './base-template'
+import { escapeHtml } from '@/lib/utils/sanitize'
+import { EMAIL_URLS } from '@/config/urls'
 
 export interface SubscriptionRenewalData {
   customerName: string
@@ -11,18 +13,18 @@ export interface SubscriptionRenewalData {
 
 export const subscriptionRenewalTemplate = (data: SubscriptionRenewalData) => {
   const body = `
-    <p>Hi ${data.customerName},</p>
-    <p>Your <strong>${data.planName}</strong> subscription has been renewed successfully!</p>
+    <p>Hi ${escapeHtml(data.customerName)},</p>
+    <p>Your <strong>${escapeHtml(data.planName)}</strong> subscription has been renewed successfully!</p>
     
     <div class="order-details">
       <h2>Renewal Details</h2>
       <div class="item">
         <span>Plan</span>
-        <span>${data.planName}</span>
+        <span>${escapeHtml(data.planName)}</span>
       </div>
       <div class="item">
         <span>Amount</span>
-        <span>${data.amount}</span>
+        <span>${escapeHtml(data.amount)}</span>
       </div>
       <div class="item">
         <span>Credits Added</span>
@@ -30,7 +32,7 @@ export const subscriptionRenewalTemplate = (data: SubscriptionRenewalData) => {
       </div>
       <div class="item">
         <span>Next Renewal</span>
-        <span>${data.nextRenewalDate}</span>
+        <span>${escapeHtml(data.nextRenewalDate)}</span>
       </div>
     </div>
     
@@ -40,14 +42,14 @@ export const subscriptionRenewalTemplate = (data: SubscriptionRenewalData) => {
     }
     
     <div style="text-align: center;">
-      <a href="https://kylo.video/dashboard" class="button">View Dashboard</a>
+      <a href="${EMAIL_URLS.DASHBOARD}" class="button">View Dashboard</a>
     </div>
     
     <p>Thank you for continuing your creative journey with Kylo!</p>
   `
 
   return {
-    subject: `Subscription Renewed - ${data.planName}`,
+    subject: `Subscription Renewed - ${escapeHtml(data.planName)}`,
     html: baseTemplate({
       title: 'Subscription Renewed Successfully!',
       body

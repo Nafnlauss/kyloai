@@ -1,4 +1,6 @@
 import { baseTemplate } from './base-template'
+import { escapeHtml } from '@/lib/utils/sanitize'
+import { EMAIL_URLS } from '@/config/urls'
 
 export interface WelcomeEmailData {
   name: string
@@ -7,7 +9,7 @@ export interface WelcomeEmailData {
 
 export const welcomeTemplate = (data: WelcomeEmailData) => {
   const body = `
-    <p>Hi ${data.name || 'Creator'},</p>
+    <p>Hi ${escapeHtml(data.name || 'Creator')},</p>
     <p>We're thrilled to have you with us! You've just taken the first step towards creating amazing AI-powered videos.</p>
     
     <h2>🎁 Your 300 free credits are ready to use!</h2>
@@ -23,7 +25,7 @@ export const welcomeTemplate = (data: WelcomeEmailData) => {
     </div>
     
     <div style="text-align: center;">
-      <a href="https://kylo.video/generate" class="button">Create Your First Video</a>
+      <a href="${EMAIL_URLS.GENERATE}" class="button">Create Your First Video</a>
     </div>
     
     <p>Tip: Start with simple prompts and gradually increase complexity as you learn!</p>

@@ -1,4 +1,6 @@
 import { baseTemplate } from './base-template'
+import { escapeHtml } from '@/lib/utils/sanitize'
+import { EMAIL_URLS } from '@/config/urls'
 
 export interface PasswordResetData {
   email: string
@@ -7,17 +9,17 @@ export interface PasswordResetData {
 }
 
 export const passwordResetTemplate = (data: PasswordResetData) => {
-  const resetUrl = `https://kylo.video/reset-password?token=${data.resetToken}`
+  const resetUrl = EMAIL_URLS.getPasswordResetUrl(data.resetToken)
   
   const body = `
     <p>Hi,</p>
-    <p>We received a request to reset the password for your account associated with ${data.email}.</p>
+    <p>We received a request to reset the password for your account associated with ${escapeHtml(data.email)}.</p>
     
     <div style="text-align: center; margin: 30px 0;">
       <a href="${resetUrl}" class="button">Reset Password</a>
     </div>
     
-    <p><strong>This link will expire in ${data.expiresIn}.</strong></p>
+    <p><strong>This link will expire in ${escapeHtml(data.expiresIn)}.</strong></p>
     
     <p>If you didn't request this password reset, please ignore this email. Your password won't be changed.</p>
     
