@@ -79,12 +79,14 @@
   }
 }
 
+/* Temporariamente removido para teste
 html {
   @apply dark;
 }
+*/
 
 body {
-  @apply dark bg-background;
+  @apply bg-background;
 }
 
 /* Garante que o gradiente de texto funcione */

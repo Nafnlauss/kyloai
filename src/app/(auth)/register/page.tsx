@@ -18,19 +18,19 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from '@/hooks/use-toast'
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter no mínimo 2 caracteres'),
-  email: z.string().email('Email inválido'),
+  name: z.string().min(2, 'Name must have at least 2 characters'),
+  email: z.string().email('Invalid email'),
   password: z.string()
-    .min(8, 'Senha deve ter no mínimo 8 caracteres')
-    .regex(/[A-Z]/, 'Senha deve conter pelo menos uma letra maiúscula')
-    .regex(/[a-z]/, 'Senha deve conter pelo menos uma letra minúscula')
-    .regex(/[0-9]/, 'Senha deve conter pelo menos um número'),
+    .min(8, 'Password must have at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   confirmPassword: z.string(),
   acceptTerms: z.boolean().refine(val => val === true, {
-    message: 'Você deve aceitar os termos de uso',
+    message: 'You must accept the terms of use',
   }),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: 'As senhas não coincidem',
+  message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
 
@@ -74,7 +74,7 @@ export default function RegisterPage() {
       const result = await response.json()
 
       if (!response.ok) {
-        setError(result.error || 'Erro ao criar conta')
+        setError(result.error || 'Error creating account')
         return
       }
 
@@ -87,15 +87,15 @@ export default function RegisterPage() {
 
       if (signInResult?.ok) {
         toast({
-          title: 'Conta criada com sucesso!',
-          description: 'Bem-vindo ao KyloAI!',
+          title: 'Account created successfully!',
+          description: 'Welcome to KyloAI!',
         })
         router.push('/dashboard')
         router.refresh()
       }
     } catch (error) {
       console.error('Register error:', error)
-      setError('Ocorreu um erro ao criar sua conta. Tente novamente.')
+      setError('An error occurred while creating your account. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -107,7 +107,7 @@ export default function RegisterPage() {
       await signIn('google', { callbackUrl: '/dashboard' })
     } catch (error) {
       console.error('Google sign in error:', error)
-      setError('Erro ao fazer login com Google')
+      setError('Error signing in with Google')
     } finally {
       setIsLoading(false)
     }
@@ -119,15 +119,15 @@ export default function RegisterPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight">KyloAI</h1>
           <p className="mt-2 text-muted-foreground">
-            Crie sua conta e comece a gerar vídeos incríveis
+            Create your account and start generating amazing videos
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Criar nova conta</CardTitle>
+            <CardTitle>Create new account</CardTitle>
             <CardDescription>
-              Preencha os dados abaixo para começar
+              Fill in the details below to get started
             </CardDescription>
           </CardHeader>
 
@@ -141,13 +141,13 @@ export default function RegisterPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="name">Nome completo</Label>
+                <Label htmlFor="name">Full name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="name"
                     type="text"
-                    placeholder="Seu nome"
+                    placeholder="Your name"
                     className="pl-10"
                     disabled={isLoading}
                     {...register('name')}
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="seu@email.com"
+                    placeholder="your@email.com"
                     className="pl-10"
                     disabled={isLoading}
                     {...register('email')}
@@ -177,7 +177,7 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password">Password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -193,12 +193,12 @@ export default function RegisterPage() {
                   <p className="text-sm text-destructive">{errors.password.message}</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Mínimo 8 caracteres, com letras maiúsculas, minúsculas e números
+                  Minimum 8 characters, with uppercase letters, lowercase letters and numbers
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmar senha</Label>
+                <Label htmlFor="confirmPassword">Confirm password</Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -227,16 +227,16 @@ export default function RegisterPage() {
                     htmlFor="terms"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Aceitar termos e condições
+                    Accept terms and conditions
                   </label>
                   <p className="text-xs text-muted-foreground">
-                    Você concorda com nossos{' '}
+                    You agree with our{' '}
                     <Link href="/terms" className="text-primary hover:underline">
-                      Termos de Serviço
+                      Terms of Service
                     </Link>{' '}
-                    e{' '}
+                    and{' '}
                     <Link href="/privacy" className="text-primary hover:underline">
-                      Política de Privacidade
+                      Privacy Policy
                     </Link>
                   </p>
                 </div>
@@ -253,10 +253,10 @@ export default function RegisterPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando conta...
+                    Creating account...
                   </>
                 ) : (
-                  'Criar conta'
+                  'Create account'
                 )}
               </Button>
 
@@ -266,7 +266,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Ou continue com
+                    Or continue with
                   </span>
                 </div>
               </div>
@@ -302,12 +302,12 @@ export default function RegisterPage() {
 
             <CardFooter className="flex justify-center">
               <p className="text-sm text-muted-foreground">
-                Já tem uma conta?{' '}
+                Already have an account?{' '}
                 <Link
                   href="/login"
                   className="text-primary hover:underline font-medium"
                 >
-                  Entrar
+                  Sign in
                 </Link>
               </p>
             </CardFooter>

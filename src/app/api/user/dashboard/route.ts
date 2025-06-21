@@ -13,21 +13,33 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user with subscription
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      include: {
-        subscription: {
-          include: { plan: true },
+    let user
+    try {
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        include: {
+          subscription: {
+            include: { plan: true },
+          },
         },
-      },
-    })
+      })
+    } catch (dbError) {
+      console.error('Database error fetching user:', dbError)
+      return NextResponse.json({ 
+        error: 'Failed to fetch user data',
+        details: process.env.NODE_ENV === 'development' ? dbError : undefined
+      }, { status: 500 })
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
     // Get video statistics
-    const [videosTotal, videosThisMonth, recentVideos, avgProcessingTime] = await Promise.all([
+    let videosTotal = 0, videosThisMonth = 0, recentVideos = [], avgProcessingTime = { _avg: { duration: null } }
+    
+    try {
+      [videosTotal, videosThisMonth, recentVideos, avgProcessingTime] = await Promise.all([
       // Total videos
       prisma.video.count({
         where: { userId: session.user.id },
@@ -69,6 +81,10 @@ export async function GET(request: NextRequest) {
         },
       }),
     ])
+    } catch (dbError) {
+      console.error('Database error fetching video stats:', dbError)
+      // Continue with default values if stats fail
+    }
 
     // Calculate subscription details
     let subscriptionData = {

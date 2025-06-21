@@ -4,6 +4,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
+        "dev:3001": "next dev -p 3001 -H 0.0.0.0",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
@@ -78,6 +79,7 @@
         "stripe": "^17.3.1",
         "swr": "^2.2.5",
         "tailwind-merge": "^2.5.4",
+        "tailwindcss": "^3.4.17",
         "tailwindcss-animate": "^1.0.7",
         "winston": "^3.15.0",
         "xss": "^1.0.15",
@@ -86,7 +88,6 @@
     "devDependencies": {
         "@eslint/eslintrc": "^3",
         "@mswjs/data": "^0.16.2",
-        "@tailwindcss/postcss": "^4",
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.0.1",
         "@types/bcryptjs": "^2.4.6",
@@ -105,7 +106,6 @@
         "postcss": "^8.5.6",
         "prettier": "^3.3.3",
         "prisma-erd-generator": "^1.11.2",
-        "tailwindcss": "^4.1.10",
         "typescript": "^5.7.2"
     }
 }

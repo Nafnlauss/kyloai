@@ -101,18 +101,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   
   // Handle credit purchase
   if (session.metadata?.type === 'credits') {
+    const { CreditManager } = await import('@/lib/credits/credit-manager')
     const credits = parseInt(session.metadata.credits)
     
-    // Add credits to user
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        credits: { increment: credits },
-      },
-    })
-    
     // Create transaction record
-    await prisma.transaction.create({
+    const transaction = await prisma.transaction.create({
       data: {
         userId,
         amount: session.amount_total || 0,
@@ -125,6 +118,14 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         metadata: JSON.stringify(session.metadata),
       },
     })
+    
+    // Add credits using CreditManager
+    await CreditManager.purchaseCredits(
+      userId,
+      credits,
+      transaction.id,
+      `Purchase of ${credits} credits`
+    )
     
     // Send confirmation email
     await sendPurchaseConfirmationEmail({
@@ -158,6 +159,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handleSubscriptionChange(subscription: Stripe.Subscription) {
+  const { CreditManager } = await import('@/lib/credits/credit-manager')
   const userId = subscription.metadata.userId
   
   if (!userId) {
@@ -182,18 +184,22 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
     return
   }
   
+  const isYearly = subscription.items.data[0].price.recurring?.interval === 'year'
+  const interval = isYearly ? 'YEARLY' : 'MONTHLY'
+  
   // Update or create subscription
-  await prisma.subscription.upsert({
+  const sub = await prisma.subscription.upsert({
     where: { userId },
     create: {
       userId,
       planId: plan.id,
       status: mapStripeStatus(subscription.status),
-      interval: subscription.items.data[0].price.recurring?.interval === 'year' ? 'YEARLY' : 'MONTHLY',
+      interval,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       stripeSubscriptionId: subscription.id,
       stripePriceId: priceId,
+      creditsAccumulative: isYearly, // Yearly plans have accumulative credits
     },
     update: {
       planId: plan.id,
@@ -203,17 +209,23 @@ async function handleSubscriptionChange(subscription: Stripe.Subscription) {
       stripePriceId: priceId,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+      creditsAccumulative: isYearly,
     },
   })
   
-  // Add monthly credits if subscription is active
+  // Grant credits if subscription is active
   if (subscription.status === 'active') {
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        credits: { increment: plan.monthlyCredits },
-      },
-    })
+    const creditsToGrant = isYearly 
+      ? plan.monthlyCredits * 12  // Grant full year credits
+      : plan.monthlyCredits       // Grant monthly credits
+      
+    await CreditManager.grantSubscriptionCredits(
+      userId,
+      sub.id,
+      creditsToGrant,
+      isYearly,
+      `${plan.displayName} ${interval} subscription`
+    )
   }
 }
 

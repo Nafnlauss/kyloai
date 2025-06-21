@@ -15,7 +15,8 @@ model User {
   name              String?
   passwordHash      String?        // Bcrypt hash
   image             String?
-  credits           Int            @default(10) // Créditos grátis iniciais
+  credits           Int            @default(300) // Créditos grátis iniciais
+  creditsLastReset  DateTime       @default(now()) // Para controlar reset mensal
   role              Role           @default(USER)
   isActive          Boolean        @default(true)
   
@@ -35,6 +36,7 @@ model User {
   accounts          Account[]
   auditLogs         AuditLog[]
   apiKeys           ApiKey[]
+  creditHistory     CreditHistory[]
   
   // Pagamentos
   stripeCustomerId  String?        @unique
@@ -125,6 +127,11 @@ model Subscription {
   cancelAtPeriodEnd    Boolean         @default(false)
   canceledAt           DateTime?
   
+  // Credit tracking
+  creditsAccumulative  Boolean         @default(false) // true for yearly
+  totalCreditsGranted  Int             @default(0)
+  creditsGrantedAt     DateTime?
+  
   // Stripe
   stripeSubscriptionId String?         @unique
   stripePriceId        String?
@@ -136,6 +143,7 @@ model Subscription {
   // Relacionamentos
   user                 User            @relation(fields: [userId], references: [id])
   plan                 Plan            @relation(fields: [planId], references: [id])
+  creditHistory        CreditHistory[]
   
   @@index([stripeSubscriptionId])
   @@index([status])
@@ -243,6 +251,7 @@ model Video {
   
   // Relacionamentos
   user            User            @relation(fields: [userId], references: [id])
+  creditHistory   CreditHistory[]
   
   @@index([userId])
   @@index([status])
@@ -313,4 +322,35 @@ enum PaymentGateway {
   ASAAS
   MANUAL
   PROMOTIONAL
+}
+
+enum CreditTransactionType {
+  GRANTED       // Credits granted by subscription
+  USED          // Credits used for video generation
+  PURCHASED     // Credits purchased separately
+  EXPIRED       // Credits expired (monthly plans)
+  REFUNDED      // Credits refunded
+  BONUS         // Bonus credits given
+}
+
+model CreditHistory {
+  id             String                @id @default(cuid())
+  userId         String
+  amount         Int                   // Positive for credits added, negative for credits used
+  type           CreditTransactionType
+  description    String?
+  subscriptionId String?
+  videoId        String?
+  balance        Int                   // Balance after transaction
+  metadata       String?               // JSON for additional data
+  createdAt      DateTime              @default(now())
+  
+  // Relationships
+  user           User                  @relation(fields: [userId], references: [id])
+  subscription   Subscription?         @relation(fields: [subscriptionId], references: [id])
+  video          Video?                @relation(fields: [videoId], references: [id])
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([type])
 }

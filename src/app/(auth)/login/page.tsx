@@ -17,8 +17,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from '@/hooks/use-toast'
 
 const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Senha deve ter no mínimo 6 caracteres'),
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 
 type LoginData = z.infer<typeof loginSchema>
@@ -51,24 +51,24 @@ function LoginForm() {
 
       if (result?.error) {
         if (result.error.includes('locked')) {
-          setError('Conta bloqueada. Tente novamente mais tarde.')
+          setError('Account locked. Please try again later.')
         } else {
-          setError('Email ou senha incorretos')
+          setError('Invalid email or password')
         }
         return
       }
 
       if (result?.ok) {
         toast({
-          title: 'Login realizado!',
-          description: 'Você será redirecionado...',
+          title: 'Login successful!',
+          description: 'You will be redirected...',
         })
         router.push(callbackUrl)
         router.refresh()
       }
     } catch (error) {
       console.error('Login error:', error)
-      setError('Ocorreu um erro ao fazer login. Tente novamente.')
+      setError('An error occurred during login. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -80,7 +80,7 @@ function LoginForm() {
       await signIn('google', { callbackUrl })
     } catch (error) {
       console.error('Google sign in error:', error)
-      setError('Erro ao fazer login com Google')
+      setError('Error signing in with Google')
     } finally {
       setIsLoading(false)
     }
@@ -92,15 +92,15 @@ function LoginForm() {
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight">KyloAI</h1>
           <p className="mt-2 text-muted-foreground">
-            Crie vídeos incríveis com inteligência artificial
+            Create amazing videos with artificial intelligence
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Entrar na sua conta</CardTitle>
+            <CardTitle>Sign in to your account</CardTitle>
             <CardDescription>
-              Use seu email e senha ou entre com Google
+              Use your email and password or sign in with Google
             </CardDescription>
           </CardHeader>
 
@@ -120,7 +120,7 @@ function LoginForm() {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="seu@email.com"
+                    placeholder="your@email.com"
                     className="pl-10"
                     disabled={isLoading}
                     {...register('email')}
@@ -138,7 +138,7 @@ function LoginForm() {
                     href="/reset"
                     className="text-sm text-primary hover:underline"
                   >
-                    Esqueceu a senha?
+                    Forgot password?
                   </Link>
                 </div>
                 <div className="relative">
@@ -165,10 +165,10 @@ function LoginForm() {
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Entrando...
+                    Signing in...
                   </>
                 ) : (
-                  'Entrar'
+                  'Sign In'
                 )}
               </Button>
 
@@ -178,7 +178,7 @@ function LoginForm() {
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
                   <span className="bg-background px-2 text-muted-foreground">
-                    Ou continue com
+                    Or continue with
                   </span>
                 </div>
               </div>
@@ -214,12 +214,12 @@ function LoginForm() {
 
             <CardFooter className="flex justify-center">
               <p className="text-sm text-muted-foreground">
-                Não tem uma conta?{' '}
+                Don't have an account?{' '}
                 <Link
                   href="/register"
                   className="text-primary hover:underline font-medium"
                 >
-                  Criar conta
+                  Create account
                 </Link>
               </p>
             </CardFooter>

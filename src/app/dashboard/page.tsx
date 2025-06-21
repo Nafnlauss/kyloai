@@ -47,7 +47,7 @@ interface DashboardStats {
 
 export default function DashboardPage() {
   const { data: session } = useSession()
-  const [greeting, setGreeting] = useState('')
+  const [greeting, setGreeting] = useState('Olá')
 
   useEffect(() => {
     const hour = new Date().getHours()
@@ -194,7 +194,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{stats?.videosTotal || 0}</div>
             <p className="text-xs text-muted-foreground">
-              {stats?.videosThisMonth || 0} este mês
+              {stats?.videosThisMonth || 0} criado{stats?.videosThisMonth !== 1 ? 's' : ''} este mês
             </p>
           </CardContent>
         </Card>

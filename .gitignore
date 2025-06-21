@@ -40,5 +40,19 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# vercel
 .vercel
-testes/VARIAVEIS-VERCEL.md 
+
+# test files and directories
+tests/
+test-*.js
+test-*.ts
+*.test.*
+*.spec.*
+**/test/**
+**/tests/**
+
+# temporary files
+*.tmp
+*.temp
+*.log 

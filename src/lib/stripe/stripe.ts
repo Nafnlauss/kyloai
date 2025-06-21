@@ -32,9 +32,10 @@ export const STRIPE_PRICES = {
   },
   // One-time credit purchases
   CREDITS: {
-    get PACK_50() { return process.env.STRIPE_PRICE_CREDITS_50 || '' },
-    get PACK_100() { return process.env.STRIPE_PRICE_CREDITS_100 || '' },
-    get PACK_500() { return process.env.STRIPE_PRICE_CREDITS_500 || '' },
+    get PACK_1000() { return process.env.STRIPE_PRICE_CREDITS_1000 || '' },
+    get PACK_2500() { return process.env.STRIPE_PRICE_CREDITS_2500 || '' },
+    get PACK_7000() { return process.env.STRIPE_PRICE_CREDITS_7000 || '' },
+    get PACK_16000() { return process.env.STRIPE_PRICE_CREDITS_16000 || '' },
   }
 }
 

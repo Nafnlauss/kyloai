@@ -5,13 +5,14 @@ import { createCheckoutSession, STRIPE_PRICES } from '@/lib/stripe/stripe'
 import { z } from 'zod'
 
 const checkoutCreditsSchema = z.object({
-  pack: z.enum(['PACK_50', 'PACK_100', 'PACK_500']),
+  pack: z.enum(['PACK_1000', 'PACK_2500', 'PACK_7000', 'PACK_16000']),
 })
 
 const CREDIT_PACKS = {
-  PACK_50: { credits: 50, price: 1990 }, // R$ 19,90
-  PACK_100: { credits: 100, price: 3490 }, // R$ 34,90
-  PACK_500: { credits: 500, price: 14990 }, // R$ 149,90
+  PACK_1000: { credits: 1000, price: 24990 }, // R$ 249,90
+  PACK_2500: { credits: 2500, price: 54990 }, // R$ 549,90
+  PACK_7000: { credits: 7000, price: 139990 }, // R$ 1.399,90
+  PACK_16000: { credits: 16000, price: 279990 }, // R$ 2.799,90
 }
 
 export async function POST(req: NextRequest) {

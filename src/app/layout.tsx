@@ -2,28 +2,29 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { FloatingCredits } from '@/components/ui/floating-credits'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'KyloAI - Create Stunning AI Videos',
+  title: 'Kylo - Create Stunning AI Videos',
   description: 'Generate professional AI videos from text prompts using advanced AI models.',
   keywords: 'AI video, text to video, video generation, Luma, Kling AI',
-  authors: [{ name: 'KyloAI' }],
-  creator: 'KyloAI',
+  authors: [{ name: 'Kylo' }],
+  creator: 'Kylo',
   openGraph: {
-    title: 'KyloAI - Create Stunning AI Videos',
+    title: 'Kylo - Create Stunning AI Videos',
     description: 'Generate professional AI videos from text prompts using advanced AI models.',
-    url: 'https://kyloai.com',
-    siteName: 'KyloAI',
+    url: 'https://kylo.video',
+    siteName: 'Kylo',
     locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'KyloAI - Create Stunning AI Videos',
+    title: 'Kylo - Create Stunning AI Videos',
     description: 'Generate professional AI videos from text prompts using advanced AI models.',
-    creator: '@kyloai',
+    creator: '@kylo',
   },
   robots: {
     index: true,
@@ -46,7 +47,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <FloatingCredits />
+        </Providers>
       </body>
     </html>
   )

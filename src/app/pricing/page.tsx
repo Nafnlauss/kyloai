@@ -5,75 +5,14 @@ import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Switch } from '@/components/ui/switch'
+import { BillingSwitch } from '@/components/ui/billing-switch'
 import { Badge } from '@/components/ui/badge'
 import { Check, Loader2, Sparkles, X } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
+import { PRICING_CONFIG, formatPrice } from '@/config/pricing'
 
-const plans = [
-  {
-    id: 'LITE',
-    name: 'Básico',
-    description: 'Para criadores iniciantes',
-    monthlyPrice: 49,
-    yearlyPrice: 470,
-    monthlyCredits: 100,
-    features: [
-      '100 créditos por mês',
-      'Vídeos até 10 segundos',
-      'Resolução 720p',
-      'Suporte por email',
-      'Sem marca d\'água',
-    ],
-    notIncluded: [
-      'Vídeos em Full HD',
-      'Uso comercial',
-      'Fila prioritária',
-    ],
-  },
-  {
-    id: 'CREATOR',
-    name: 'Criador',
-    description: 'Para profissionais',
-    monthlyPrice: 199,
-    yearlyPrice: 1910,
-    monthlyCredits: 500,
-    popular: true,
-    features: [
-      '500 créditos por mês',
-      'Vídeos até 15 segundos',
-      'Resolução Full HD',
-      'Uso comercial permitido',
-      'Sem marca d\'água',
-      'Fila prioritária',
-      'Suporte prioritário',
-    ],
-    notIncluded: [
-      'API Access',
-      'Analytics avançado',
-    ],
-  },
-  {
-    id: 'PROFESSIONAL',
-    name: 'Profissional',
-    description: 'Para empresas e agências',
-    monthlyPrice: 699,
-    yearlyPrice: 6710,
-    monthlyCredits: 2000,
-    features: [
-      '2000 créditos por mês',
-      'Vídeos até 30 segundos',
-      'Resolução Full HD',
-      'Uso comercial ilimitado',
-      'API Access',
-      'Suporte prioritário',
-      'Analytics avançado',
-      'Múltiplos usuários',
-      'Fila prioritária',
-    ],
-    notIncluded: [],
-  },
-]
+const plans = Object.values(PRICING_CONFIG.plans).filter(plan => plan.id !== 'FREE')
 
 export default function PricingPage() {
   const router = useRouter()
@@ -81,6 +20,43 @@ export default function PricingPage() {
   const { toast } = useToast()
   const [isYearly, setIsYearly] = useState(false)
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+  const [loadingPack, setLoadingPack] = useState<string | null>(null)
+
+
+
+  const handleBuyCredits = async (pack: string) => {
+    if (status === 'unauthenticated') {
+      router.push('/login?callbackUrl=/pricing')
+      return
+    }
+
+    setLoadingPack(pack)
+
+    try {
+      const response = await fetch('/api/stripe/checkout-credits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pack }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session')
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setLoadingPack(null)
+    }
+  }
 
   const handleSubscribe = async (planId: string) => {
     if (status === 'unauthenticated') {
@@ -121,6 +97,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+
       {/* Header */}
       <div className="border-b">
         <div className="container py-8">
@@ -135,20 +112,38 @@ export default function PricingPage() {
 
       {/* Pricing Toggle */}
       <div className="container py-8">
-        <div className="flex items-center justify-center gap-4">
-          <span className={!isYearly ? 'font-semibold' : 'text-muted-foreground'}>
-            Monthly
-          </span>
-          <Switch
-            checked={isYearly}
-            onCheckedChange={setIsYearly}
-          />
-          <span className={isYearly ? 'font-semibold' : 'text-muted-foreground'}>
-            Yearly
-            <Badge variant="secondary" className="ml-2">
-              Save 20%
+        <div className="flex items-center justify-center gap-2">
+          <div className="inline-flex rounded-lg bg-muted p-1">
+            <button
+              type="button"
+              onClick={() => setIsYearly(false)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                !isYearly
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Mensal
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsYearly(true)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
+                isYearly
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Anual
+            </button>
+          </div>
+          {isYearly && (
+            <Badge variant="secondary" className="text-xs">
+              Economize 20%
             </Badge>
-          </span>
+          )}
         </div>
       </div>
 
@@ -156,8 +151,8 @@ export default function PricingPage() {
       <div className="container pb-16">
         <div className="grid gap-8 md:grid-cols-3">
           {plans.map((plan) => {
-            const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice
-            const interval = isYearly ? '/year' : '/month'
+            const price = isYearly ? formatPrice(plan.yearlyPrice) : formatPrice(plan.monthlyPrice)
+            const interval = isYearly ? '/ano' : '/mês'
             
             return (
               <Card 
@@ -171,19 +166,19 @@ export default function PricingPage() {
                 )}
                 
                 <CardHeader>
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                  <CardTitle className="text-2xl">{plan.displayName}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
                 
                 <CardContent className="space-y-6">
                   <div>
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold">R$ {price}</span>
+                      <span className="text-4xl font-bold">{price}</span>
                       <span className="text-muted-foreground ml-2">{interval}</span>
                     </div>
                     {isYearly && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        R$ {Math.round(plan.yearlyPrice / 12)}/month billed annually
+                        {formatPrice(Math.round(plan.yearlyPrice / 12))}/mês cobrado anualmente
                       </p>
                     )}
                   </div>
@@ -191,18 +186,58 @@ export default function PricingPage() {
                   <div className="rounded-lg bg-muted/50 p-4">
                     <div className="flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-primary" />
-                      <span className="font-semibold">{plan.monthlyCredits} credits/month</span>
+                      <span className="font-semibold">
+                        {isYearly 
+                          ? `${((plan as any).yearlyCredits || plan.monthlyCredits * 12).toLocaleString('pt-BR')} créditos anuais`
+                          : `${plan.monthlyCredits} créditos/mês`
+                        }
+                      </span>
                     </div>
+                    {isYearly ? (
+                      <p className="text-xs text-green-600 mt-2 font-medium">
+                        ✓ Créditos acumulativos - use quando quiser
+                      </p>
+                    ) : (
+                      <p className="text-xs text-orange-600 mt-2 font-medium">
+                        ⚠️ Créditos não acumulam - renovam mensalmente
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-sm font-medium">Included:</p>
+                    <p className="text-sm font-medium">Incluído:</p>
                     {plan.features.map((feature) => (
                       <div key={feature} className="flex items-start gap-2">
                         <Check className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
                         <span className="text-sm">{feature}</span>
                       </div>
                     ))}
+                    
+                    {/* Show billing-specific features */}
+                    {isYearly && (plan as any).yearlyFeatures && (
+                      <>
+                        <div className="pt-2 border-t border-green-200">
+                          {(plan as any).yearlyFeatures.map((feature: string) => (
+                            <div key={feature} className="flex items-start gap-2 mt-2">
+                              <Check className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
+                              <span className="text-sm font-medium text-green-700">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    
+                    {!isYearly && (plan as any).monthlyFeatures && (
+                      <>
+                        <div className="pt-2 border-t border-orange-200">
+                          {(plan as any).monthlyFeatures.map((feature: string) => (
+                            <div key={feature} className="flex items-start gap-2 mt-2">
+                              <span className="text-sm text-orange-600">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
                     
                     {plan.notIncluded.length > 0 && (
                       <>
@@ -232,7 +267,7 @@ export default function PricingPage() {
                         Processing...
                       </>
                     ) : (
-                      'Get Started'
+                      'Começar Agora'
                     )}
                   </Button>
                 </CardFooter>
@@ -252,51 +287,39 @@ export default function PricingPage() {
             </p>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-3 max-w-3xl mx-auto">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Small Pack</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">50 credits</div>
-                <div className="text-muted-foreground">R$ 19,90</div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
-                  Buy Now
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Medium Pack</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">100 credits</div>
-                <div className="text-muted-foreground">R$ 34,90</div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
-                  Buy Now
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Large Pack</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">500 credits</div>
-                <div className="text-muted-foreground">R$ 149,90</div>
-              </CardContent>
-              <CardFooter>
-                <Button className="w-full" variant="outline" size="sm">
-                  Buy Now
-                </Button>
-              </CardFooter>
-            </Card>
+          <div className="grid gap-4 md:grid-cols-4 max-w-6xl mx-auto">
+            {Object.values(PRICING_CONFIG.creditPacks).map((pack) => (
+              <Card key={pack.id} className={pack.maximum ? 'md:col-span-2' : ''}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{pack.name}</CardTitle>
+                  {pack.popular && <Badge variant="secondary" className="w-fit">Popular</Badge>}
+                  {pack.bestValue && <Badge variant="secondary" className="w-fit">Best Value</Badge>}
+                  {pack.maximum && <Badge className="w-fit">Maximum Savings</Badge>}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{pack.credits.toLocaleString('pt-BR')} créditos</div>
+                  <div className="text-muted-foreground">{formatPrice(pack.price)}</div>
+                  {pack.savings && (
+                    <div className="text-xs text-green-600 mt-1">{pack.savings}</div>
+                  )}
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    className="w-full" 
+                    variant={pack.maximum ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleBuyCredits(pack.id)}
+                    disabled={loadingPack === pack.id}
+                  >
+                    {loadingPack === pack.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      'Comprar Agora'
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
           </div>
         </div>
       </div>

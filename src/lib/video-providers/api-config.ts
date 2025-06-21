@@ -59,10 +59,10 @@ export const API_CONFIGS: Record<string, ApiConfig> = {
   },
   KLING_V1: {
     id: 'KLING_V1',
-    name: 'Kling V1 (STD)',
+    name: 'Kling 1.6 Pro',
     badge: 'PRO',
     badgeVariant: 'secondary',
-    description: 'Creative and artistic, standard quality',
+    description: 'Creative and artistic, professional quality',
     creditsPerSecond: 5,
     baseCredits: 0,
     generationTime: '~2-3 min',
