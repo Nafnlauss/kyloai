@@ -23,7 +23,11 @@ export function Providers({ children }: ProvidersProps) {
   )
 
   return (
-    <SessionProvider>
+    <SessionProvider 
+      // Desabilita refetch automático que pode causar loops
+      refetchInterval={0}
+      refetchOnWindowFocus={false}
+    >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider
           attribute="class"
