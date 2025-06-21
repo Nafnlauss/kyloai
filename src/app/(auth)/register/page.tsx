@@ -88,7 +88,7 @@ export default function RegisterPage() {
       if (signInResult?.ok) {
         toast({
           title: 'Account created successfully!',
-          description: 'Welcome to KyloAI!',
+          description: 'Welcome to Kylo!',
         })
         router.push('/dashboard')
         router.refresh()
@@ -117,7 +117,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">KyloAI</h1>
+          <h1 className="text-4xl font-bold tracking-tight">Kylo</h1>
           <p className="mt-2 text-muted-foreground">
             Create your account and start generating amazing videos
           </p>

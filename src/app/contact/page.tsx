@@ -12,8 +12,6 @@ import {
   MessageSquare, 
   Send,
   Clock,
-  MapPin,
-  Phone,
   Loader2
 } from 'lucide-react'
 
@@ -40,17 +38,17 @@ export default function ContactPage() {
 
       if (response.ok) {
         toast({
-          title: 'Mensagem enviada!',
-          description: 'Responderemos o mais breve possível.',
+          title: 'Message sent!',
+          description: 'We will respond as soon as possible.',
         })
         setFormData({ name: '', email: '', subject: '', message: '' })
       } else {
-        throw new Error('Falha ao enviar mensagem')
+        throw new Error('Failed to send message')
       }
     } catch (error) {
       toast({
-        title: 'Erro',
-        description: 'Não foi possível enviar sua mensagem. Tente novamente.',
+        title: 'Error',
+        description: 'Could not send your message. Please try again.',
         variant: 'destructive'
       })
     } finally {
@@ -64,10 +62,10 @@ export default function ContactPage() {
       <section className="py-16 px-4 bg-gradient-to-b from-primary/5 to-background">
         <div className="container mx-auto max-w-6xl text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Entre em Contato
+            Contact Us
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Estamos aqui para ajudar. Envie sua mensagem e responderemos o mais breve possível.
+            We're here to help. Send us a message and we'll respond as soon as possible.
           </p>
         </div>
       </section>
@@ -82,7 +80,7 @@ export default function ContactPage() {
                   <Mail className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold mb-2">Email</h3>
-                <p className="text-muted-foreground mb-2">Suporte técnico e comercial</p>
+                <p className="text-muted-foreground mb-2">Technical and sales support</p>
                 <a 
                   href="mailto:support@kyloai.xyz" 
                   className="text-primary hover:underline"
@@ -97,9 +95,9 @@ export default function ContactPage() {
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Horário de Atendimento</h3>
-                <p className="text-muted-foreground">Segunda a Sexta</p>
-                <p className="text-muted-foreground">9h às 18h (Horário de Brasília)</p>
+                <h3 className="font-semibold mb-2">Business Hours</h3>
+                <p className="text-muted-foreground">Monday to Friday</p>
+                <p className="text-muted-foreground">9 AM to 6 PM (GMT-3)</p>
               </CardContent>
             </Card>
 
@@ -108,9 +106,9 @@ export default function ContactPage() {
                 <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <MessageSquare className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-semibold mb-2">Resposta Rápida</h3>
-                <p className="text-muted-foreground">Respondemos em até</p>
-                <p className="text-primary font-semibold">24 horas úteis</p>
+                <h3 className="font-semibold mb-2">Quick Response</h3>
+                <p className="text-muted-foreground">We respond within</p>
+                <p className="text-primary font-semibold">24 business hours</p>
               </CardContent>
             </Card>
           </div>
@@ -118,28 +116,28 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="grid md:grid-cols-2 gap-12">
             <div>
-              <h2 className="text-2xl font-bold mb-4">Envie sua Mensagem</h2>
+              <h2 className="text-2xl font-bold mb-4">Send Your Message</h2>
               <p className="text-muted-foreground mb-8">
-                Preencha o formulário ao lado e entraremos em contato o mais breve possível. 
-                Para suporte urgente, envie um email diretamente para support@kyloai.xyz.
+                Fill out the form and we'll get back to you as soon as possible. 
+                For urgent support, email us directly at support@kyloai.xyz.
               </p>
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="font-semibold mb-2">Dúvidas Frequentes</h3>
+                  <h3 className="font-semibold mb-2">Common Questions</h3>
                   <ul className="space-y-2 text-muted-foreground">
-                    <li>• Como funcionam os créditos?</li>
-                    <li>• Posso cancelar minha assinatura?</li>
-                    <li>• Os vídeos têm marca d'água?</li>
-                    <li>• Posso usar para fins comerciais?</li>
+                    <li>• How do credits work?</li>
+                    <li>• Can I cancel my subscription?</li>
+                    <li>• Do videos have watermarks?</li>
+                    <li>• Can I use for commercial purposes?</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h3 className="font-semibold mb-2">Suporte Prioritário</h3>
+                  <h3 className="font-semibold mb-2">Priority Support</h3>
                   <p className="text-muted-foreground">
-                    Assinantes dos planos Creator e Professional têm acesso a suporte prioritário 
-                    com tempo de resposta reduzido.
+                    Creator and Professional plan subscribers have access to priority support 
+                    with reduced response time.
                   </p>
                 </div>
               </div>
@@ -147,19 +145,19 @@ export default function ContactPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Formulário de Contato</CardTitle>
+                <CardTitle>Contact Form</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Nome</Label>
+                      <Label htmlFor="name">Name</Label>
                       <Input
                         id="name"
                         required
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Seu nome"
+                        placeholder="Your name"
                       />
                     </div>
                     <div>
@@ -170,31 +168,31 @@ export default function ContactPage() {
                         required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="seu@email.com"
+                        placeholder="your@email.com"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <Label htmlFor="subject">Assunto</Label>
+                    <Label htmlFor="subject">Subject</Label>
                     <Input
                       id="subject"
                       required
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                      placeholder="Sobre o que deseja falar?"
+                      placeholder="What would you like to talk about?"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="message">Mensagem</Label>
+                    <Label htmlFor="message">Message</Label>
                     <Textarea
                       id="message"
                       required
                       rows={6}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Descreva sua dúvida ou sugestão..."
+                      placeholder="Describe your question or suggestion..."
                     />
                   </div>
 
@@ -206,12 +204,12 @@ export default function ContactPage() {
                     {loading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Enviando...
+                        Sending...
                       </>
                     ) : (
                       <>
                         <Send className="mr-2 h-4 w-4" />
-                        Enviar Mensagem
+                        Send Message
                       </>
                     )}
                   </Button>
@@ -226,17 +224,17 @@ export default function ContactPage() {
       <section className="py-16 px-4 bg-muted/30">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-2xl font-bold mb-4">
-            Precisa de Ajuda Imediata?
+            Need Immediate Help?
           </h2>
           <p className="text-muted-foreground mb-8">
-            Confira nossa documentação e tutoriais para respostas rápidas
+            Check our documentation and tutorials for quick answers
           </p>
           <div className="flex gap-4 justify-center">
             <Button variant="outline" asChild>
-              <a href="/docs">Documentação</a>
+              <a href="/docs">Documentation</a>
             </Button>
             <Button variant="outline" asChild>
-              <a href="/tutorials">Tutoriais</a>
+              <a href="/tutorials">Tutorials</a>
             </Button>
             <Button variant="outline" asChild>
               <a href="/faq">FAQ</a>

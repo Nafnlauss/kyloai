@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { FloatingCredits } from '@/components/ui/floating-credits'
+import { CookieConsent } from '@/components/ui/cookie-consent'
+import { GoogleAnalytics } from '@/components/analytics/google-analytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -50,7 +52,11 @@ export default function RootLayout({
         <Providers>
           {children}
           <FloatingCredits />
+          <CookieConsent />
         </Providers>
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+          <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   )

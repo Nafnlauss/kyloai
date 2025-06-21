@@ -4,130 +4,130 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen py-16 px-4">
       <div className="container mx-auto max-w-4xl">
-        <h1 className="text-4xl font-bold mb-8">Política de Privacidade</h1>
-        <p className="text-muted-foreground mb-8">Última atualização: 21 de Dezembro de 2024</p>
+        <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
+        <p className="text-muted-foreground mb-8">Last updated: December 21, 2024</p>
 
         <div className="prose prose-gray dark:prose-invert max-w-none">
           <Card className="mb-8">
             <CardContent className="p-6 space-y-6">
               <section>
-                <h2 className="text-2xl font-semibold mb-4">1. Introdução</h2>
+                <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
                 <p className="text-muted-foreground">
-                  A Kylo ("nós", "nosso" ou "empresa") está comprometida em proteger sua privacidade. 
-                  Esta Política de Privacidade explica como coletamos, usamos, divulgamos e protegemos 
-                  suas informações quando você usa nosso serviço de geração de vídeos com IA.
+                  Kylo ("we", "our" or "company") is committed to protecting your privacy. 
+                  This Privacy Policy explains how we collect, use, disclose and protect 
+                  your information when you use our AI video generation service.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">2. Informações que Coletamos</h2>
+                <h2 className="text-2xl font-semibold mb-4">2. Information We Collect</h2>
                 
-                <h3 className="text-xl font-semibold mb-2">2.1 Informações Fornecidas por Você</h3>
+                <h3 className="text-xl font-semibold mb-2">2.1 Information You Provide</h3>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Nome e endereço de email ao criar uma conta</li>
-                  <li>Informações de pagamento (processadas com segurança via Stripe/PayPal)</li>
-                  <li>Prompts de texto e preferências de geração de vídeo</li>
-                  <li>Comunicações de suporte ao cliente</li>
+                  <li>Name and email address when creating an account</li>
+                  <li>Payment information (securely processed via Stripe/PayPal)</li>
+                  <li>Text prompts and video generation preferences</li>
+                  <li>Customer support communications</li>
                 </ul>
 
-                <h3 className="text-xl font-semibold mb-2 mt-4">2.2 Informações Coletadas Automaticamente</h3>
+                <h3 className="text-xl font-semibold mb-2 mt-4">2.2 Information Collected Automatically</h3>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Endereço IP e informações do dispositivo</li>
-                  <li>Dados de uso da plataforma e análises</li>
-                  <li>Cookies e tecnologias similares</li>
-                  <li>Registros de servidor e informações técnicas</li>
-                </ul>
-              </section>
-
-              <section>
-                <h2 className="text-2xl font-semibold mb-4">3. Como Usamos Suas Informações</h2>
-                <p className="text-muted-foreground mb-2">Utilizamos suas informações para:</p>
-                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Fornecer e melhorar nossos serviços de geração de vídeo</li>
-                  <li>Processar pagamentos e gerenciar assinaturas</li>
-                  <li>Comunicar sobre sua conta e novidades do serviço</li>
-                  <li>Detectar e prevenir fraudes e abusos</li>
-                  <li>Cumprir obrigações legais e regulatórias</li>
-                  <li>Analisar uso e melhorar a experiência do usuário</li>
+                  <li>IP address and device information</li>
+                  <li>Platform usage data and analytics</li>
+                  <li>Cookies and similar technologies</li>
+                  <li>Server logs and technical information</li>
                 </ul>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">4. Compartilhamento de Informações</h2>
-                <p className="text-muted-foreground mb-2">Compartilhamos informações apenas com:</p>
+                <h2 className="text-2xl font-semibold mb-4">3. How We Use Your Information</h2>
+                <p className="text-muted-foreground mb-2">We use your information to:</p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li><strong>Provedores de Serviço:</strong> Stripe, PayPal (pagamentos), Luma AI, Kling AI (geração de vídeos)</li>
-                  <li><strong>Conformidade Legal:</strong> Quando exigido por lei ou ordem judicial</li>
-                  <li><strong>Proteção de Direitos:</strong> Para proteger direitos, propriedade ou segurança</li>
-                  <li><strong>Com Seu Consentimento:</strong> Com sua autorização explícita</li>
+                  <li>Provide and improve our video generation services</li>
+                  <li>Process payments and manage subscriptions</li>
+                  <li>Communicate about your account and service updates</li>
+                  <li>Detect and prevent fraud and abuse</li>
+                  <li>Comply with legal and regulatory obligations</li>
+                  <li>Analyze usage and improve user experience</li>
                 </ul>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">5. Segurança dos Dados</h2>
+                <h2 className="text-2xl font-semibold mb-4">4. Information Sharing</h2>
+                <p className="text-muted-foreground mb-2">We share information only with:</p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
+                  <li><strong>Service Providers:</strong> Stripe, PayPal (payments), Luma AI, Kling AI (video generation)</li>
+                  <li><strong>Legal Compliance:</strong> When required by law or court order</li>
+                  <li><strong>Rights Protection:</strong> To protect rights, property or safety</li>
+                  <li><strong>With Your Consent:</strong> With your explicit authorization</li>
+                </ul>
+              </section>
+
+              <section>
+                <h2 className="text-2xl font-semibold mb-4">5. Data Security</h2>
                 <p className="text-muted-foreground">
-                  Implementamos medidas de segurança apropriadas, incluindo:
+                  We implement appropriate security measures, including:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Criptografia de dados em trânsito e em repouso</li>
-                  <li>Controles de acesso rigorosos</li>
-                  <li>Monitoramento regular de segurança</li>
-                  <li>Auditorias de segurança periódicas</li>
+                  <li>Encryption of data in transit and at rest</li>
+                  <li>Strict access controls</li>
+                  <li>Regular security monitoring</li>
+                  <li>Periodic security audits</li>
                 </ul>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">6. Seus Direitos (LGPD)</h2>
-                <p className="text-muted-foreground mb-2">Sob a Lei Geral de Proteção de Dados (LGPD), você tem direito a:</p>
+                <h2 className="text-2xl font-semibold mb-4">6. Your Rights (GDPR/LGPD)</h2>
+                <p className="text-muted-foreground mb-2">Under data protection laws, you have the right to:</p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Acessar seus dados pessoais</li>
-                  <li>Corrigir dados incompletos ou desatualizados</li>
-                  <li>Solicitar a exclusão de seus dados</li>
-                  <li>Portabilidade dos dados</li>
-                  <li>Revogar consentimento</li>
-                  <li>Opor-se ao processamento</li>
+                  <li>Access your personal data</li>
+                  <li>Correct incomplete or outdated data</li>
+                  <li>Request deletion of your data</li>
+                  <li>Data portability</li>
+                  <li>Withdraw consent</li>
+                  <li>Object to processing</li>
                 </ul>
                 <p className="text-muted-foreground mt-2">
-                  Para exercer seus direitos, contate: support@kyloai.xyz
+                  To exercise your rights, contact: support@kyloai.xyz
                 </p>
               </section>
 
               <section>
                 <h2 className="text-2xl font-semibold mb-4">7. Cookies</h2>
                 <p className="text-muted-foreground">
-                  Usamos cookies essenciais para funcionalidade e cookies analíticos para melhorar nossos serviços. 
-                  Você pode gerenciar suas preferências de cookies nas configurações do navegador.
+                  We use essential cookies for functionality and analytics cookies to improve our services. 
+                  You can manage your cookie preferences in your browser settings.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">8. Retenção de Dados</h2>
+                <h2 className="text-2xl font-semibold mb-4">8. Data Retention</h2>
                 <p className="text-muted-foreground">
-                  Mantemos seus dados pelo tempo necessário para fornecer nossos serviços e cumprir obrigações legais. 
-                  Vídeos gerados são armazenados por 30 dias após a criação, a menos que você os exclua antes.
+                  We retain your data for as long as necessary to provide our services and comply with legal obligations. 
+                  Generated videos are stored for 30 days after creation unless you delete them earlier.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">9. Menores de Idade</h2>
+                <h2 className="text-2xl font-semibold mb-4">9. Children</h2>
                 <p className="text-muted-foreground">
-                  Nossos serviços não são direcionados a menores de 18 anos. Não coletamos intencionalmente 
-                  informações de menores sem consentimento dos pais.
+                  Our services are not directed to individuals under 18 years old. We do not knowingly collect 
+                  information from minors without parental consent.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">10. Alterações nesta Política</h2>
+                <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
                 <p className="text-muted-foreground">
-                  Podemos atualizar esta política periodicamente. Notificaremos sobre mudanças significativas 
-                  por email ou aviso em nosso site.
+                  We may update this policy periodically. We will notify you of significant changes 
+                  by email or notice on our website.
                 </p>
               </section>
 
               <section>
-                <h2 className="text-2xl font-semibold mb-4">11. Contato</h2>
+                <h2 className="text-2xl font-semibold mb-4">11. Contact</h2>
                 <p className="text-muted-foreground">
-                  Para questões sobre privacidade, contate-nos:
+                  For privacy questions, contact us:
                 </p>
                 <ul className="list-none space-y-1 text-muted-foreground mt-2">
                   <li>Email: support@kyloai.xyz</li>

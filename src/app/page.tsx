@@ -34,10 +34,13 @@ export default function HomePage() {
       {/* Header */}
       <header className="fixed top-0 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center space-x-2">
-            <Video className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">KyloAI</span>
-          </Link>
+          <div className="flex items-center space-x-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <Video className="h-6 w-6 text-primary" />
+              <span className="font-bold text-xl">Kylo</span>
+            </Link>
+            <div className="text-sm text-muted-foreground">by Kylo</div>
+          </div>
           
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition">
@@ -621,38 +624,38 @@ export default function HomePage() {
                 <span className="font-bold text-xl">Kylo</span>
               </Link>
               <p className="text-sm text-muted-foreground">
-                Transforme suas ideias em vídeos incríveis com o poder da IA.
+                Transform your ideas into amazing videos with the power of AI.
               </p>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Produto</h4>
+              <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">Recursos</Link></li>
-                <li><Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">Preços</Link></li>
-                <li><Link href="#examples" className="text-sm text-muted-foreground hover:text-foreground">Exemplos</Link></li>
+                <li><Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</Link></li>
+                <li><Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</Link></li>
+                <li><Link href="#examples" className="text-sm text-muted-foreground hover:text-foreground">Examples</Link></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Empresa</h4>
+              <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">Sobre Nós</Link></li>
-                <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground">Contato</Link></li>
+                <li><Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About Us</Link></li>
+                <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground">Contact</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Política de Privacidade</Link></li>
-                <li><Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Termos de Serviço</Link></li>
+                <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
           
           <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            © 2024 Kylo. Todos os direitos reservados.
+            © 2024 Kylo. All rights reserved.
           </div>
         </div>
       </footer>
