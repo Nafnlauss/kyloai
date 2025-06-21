@@ -33,6 +33,10 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Check if this should be an admin user
+    const { isAdminEmail } = await import('@/config/admin-users')
+    const role = isAdminEmail(validatedData.email) ? 'ADMIN' : 'USER'
+    
     // Hash password
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(validatedData.password, saltRounds)
@@ -43,7 +47,8 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         email: validatedData.email.toLowerCase(),
         passwordHash,
-        credits: 10, // Welcome credits
+        credits: 300, // Welcome credits (updated from 10)
+        role, // Set admin role if email matches
       },
     })
     
