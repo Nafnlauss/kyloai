@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendEmail } from '@/lib/email/zoho-mail'
 
-// Schema de validação
+// Validation schema
 const contactSchema = z.object({
-  name: z.string().min(2, 'Nome muito curto'),
-  email: z.string().email('Email inválido'),
-  subject: z.string().min(5, 'Assunto muito curto'),
-  message: z.string().min(10, 'Mensagem muito curta')
+  name: z.string().min(2, 'Name too short'),
+  email: z.string().email('Invalid email'),
+  subject: z.string().min(5, 'Subject too short'),
+  message: z.string().min(10, 'Message too short')
 })
 
 export async function POST(request: Request) {
@@ -70,20 +70,20 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ 
       success: true, 
-      message: 'Mensagem enviada com sucesso' 
+      message: 'Message sent successfully' 
     })
     
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Dados inválidos', details: error.errors },
+        { error: 'Invalid data', details: error.errors },
         { status: 400 }
       )
     }
     
     console.error('Erro ao processar contato:', error)
     return NextResponse.json(
-      { error: 'Erro ao enviar mensagem' },
+      { error: 'Error sending message' },
       { status: 500 }
     )
   }
