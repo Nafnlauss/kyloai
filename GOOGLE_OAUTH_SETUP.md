@@ -1,114 +1,85 @@
-# Configuração do Google OAuth para Produção
+# 🔐 Configuração do Google OAuth para Kylo.video
 
-## O Problema
+## ⚠️ URGENTE: Correção do Erro "invalid_client"
 
-Você está sendo redirecionado para `localhost` após fazer login com Google porque as configurações de OAuth ainda estão apontando para o ambiente de desenvolvimento.
+### Problema Identificado
+- **Erro 1**: "The OAuth client was not found" (Error 401: invalid_client)
+- **Causa**: O Google OAuth não está configurado para o domínio kylo.video
 
-## Solução Passo a Passo
+## 📝 Passos para Corrigir
 
-### 1. Google Cloud Console
-
-1. Acesse: https://console.cloud.google.com/
+### 1. Acesse o Google Cloud Console
+1. Vá para: https://console.cloud.google.com/
 2. Selecione seu projeto ou crie um novo
-3. Vá para "APIs & Services" → "Credentials"
-4. Encontre seu OAuth 2.0 Client ID
 
-### 2. Atualize as URIs Autorizadas
+### 2. Configure as Credenciais OAuth
+1. Navegue para **APIs & Services** > **Credentials**
+2. Clique em sua credencial OAuth existente ou crie uma nova
+3. Configure os seguintes campos:
 
-No seu OAuth 2.0 Client, você precisa configurar:
+#### Authorized JavaScript origins (Origens JavaScript autorizadas)
+✅ Você já tem configurado:
+- https://kylo.video
+- https://www.kylo.video
+- https://kyloai-production.up.railway.app
 
-**Authorized JavaScript origins:**
+⚠️ **ADICIONE ESTAS PARA DESENVOLVIMENTO LOCAL**:
 ```
-https://seu-dominio.railway.app
-https://seu-dominio.com (se tiver domínio customizado)
-```
-
-**Authorized redirect URIs:**
-```
-https://seu-dominio.railway.app/api/auth/callback/google
-https://seu-dominio.com/api/auth/callback/google (se tiver domínio customizado)
-```
-
-### 3. Variáveis de Ambiente no Railway
-
-No painel do Railway, configure:
-
-```env
-# URL do seu app em produção
-NEXTAUTH_URL=https://seu-dominio.railway.app
-NEXT_PUBLIC_APP_URL=https://seu-dominio.railway.app
-
-# Credenciais do Google OAuth (as mesmas do console)
-GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=seu-client-secret
+http://localhost:3000
+http://localhost:3001
 ```
 
-### 4. Verifique o Arquivo de Configuração
+#### Authorized redirect URIs (URIs de redirecionamento autorizados)
+✅ Você já tem configurado:
+- https://kylo.video/api/auth/callback/google
+- https://kylo.video/auth/callback/google
+- https://www.kylo.video/api/auth/callback/google
+- https://www.kylo.video/auth/callback/google
+- https://kyloai-production.up.railway.app/api/auth/callback/google
+- https://kyloai-production.up.railway.app/auth/callback/google
 
-Certifique-se de que não há URLs hardcoded no código. O sistema deve usar `process.env.NEXTAUTH_URL` dinamicamente.
-
-### 5. URLs Importantes
-
-- **Callback do Google**: `/api/auth/callback/google`
-- **Página de Login**: `/login`
-- **Página após Login**: `/studio`
-
-### 6. Teste de Configuração
-
-1. Limpe os cookies do navegador
-2. Acesse sua aplicação em produção
-3. Clique em "Sign in with Google"
-4. Verifique se a URL de redirecionamento está correta
-
-## Variáveis de Ambiente Completas
-
-```env
-# Produção (Railway)
-NEXTAUTH_URL=https://seu-app.railway.app
-NEXT_PUBLIC_APP_URL=https://seu-app.railway.app
-
-# Se tiver domínio customizado
-NEXTAUTH_URL=https://kyloai.com
-NEXT_PUBLIC_APP_URL=https://kyloai.com
+⚠️ **ADICIONE ESTAS PARA DESENVOLVIMENTO LOCAL**:
+```
+http://localhost:3000/api/auth/callback/google
+http://localhost:3001/api/auth/callback/google
 ```
 
-## Troubleshooting
+### 3. Configure o OAuth Consent Screen
+1. Vá para **OAuth consent screen**
+2. Configure:
+   - **App name**: Kylo
+   - **User support email**: leonardo@kylo.video
+   - **App domain**: kylo.video
+   - **Authorized domains**: kylo.video
+   - **Developer contact**: leonardo@kylo.video
 
-### Erro: "redirect_uri_mismatch"
-- Verifique se as URIs no Google Console correspondem exatamente às suas URLs
-- Certifique-se de incluir `/api/auth/callback/google` no final
-- Aguarde 5-10 minutos após fazer alterações no Google Console
+### 4. Verifique as Credenciais
+As credenciais atuais no .env estão corretas:
+- **Client ID**: 591777452871-aefk8i1utkbk4k5eh35lr1i1rstrhaje.apps.googleusercontent.com
+- **Client Secret**: [MANTENHA SEGURO]
 
-### Ainda redirecionando para localhost
-1. Verifique se `NEXTAUTH_URL` está configurado no Railway
-2. Faça um novo deploy após alterar variáveis de ambiente
-3. Limpe o cache do navegador
+### 5. Status de Publicação
+Certifique-se de que o app está em modo **Production** (não Testing) para permitir logins de qualquer usuário.
 
-### Login funciona mas volta para página errada
-- Configure a variável `NEXTAUTH_URL` corretamente
-- Verifique se não há redirecionamentos hardcoded no código
+## 🔄 Teste após Configuração
 
-## Exemplo de Configuração Correta
+1. Limpe o cache do navegador
+2. Acesse https://kylo.video/login
+3. Clique em "Continue with Google"
+4. O login deve funcionar sem erros
 
-**Google Console:**
-![OAuth Config](oauth-config-example.png)
-- Origin: `https://kylo-production.railway.app`
-- Redirect URI: `https://kylo-production.railway.app/api/auth/callback/google`
+## 📋 Checklist
+- [ ] Origens JavaScript incluem kylo.video
+- [ ] URIs de redirecionamento incluem /api/auth/callback/google
+- [ ] OAuth consent screen configurado
+- [ ] App em modo Production
+- [ ] Domínio kylo.video autorizado
 
-**Railway Environment:**
-```
-NEXTAUTH_URL=https://kylo-production.railway.app
-GOOGLE_CLIENT_ID=123456789-abcdef.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxx
-```
+## 🆘 Se Continuar com Erro
 
-## Checklist Final
+1. **Verifique o Console do Google** para mensagens de erro específicas
+2. **Aguarde 5-10 minutos** - mudanças podem levar tempo para propagar
+3. **Verifique o domínio** - certifique-se de que kylo.video está apontando corretamente
 
-- [ ] URIs autorizadas configuradas no Google Console
-- [ ] Variáveis de ambiente configuradas no Railway
-- [ ] NEXTAUTH_URL aponta para produção, não localhost
-- [ ] Deploy realizado após mudanças
-- [ ] Cache do navegador limpo
-- [ ] Teste em aba anônima/privada
-
-Após seguir estes passos, o login com Google deve funcionar corretamente em produção!
+## 📞 Suporte
+Se precisar de ajuda adicional, entre em contato com o suporte do Google Cloud.
