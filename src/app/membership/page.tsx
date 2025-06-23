@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, X, Star, ArrowLeft } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import { toast } from '@/hooks/use-toast'
 
 const plans = [
   {
@@ -105,11 +106,49 @@ export default function MembershipPage() {
   const { data: session } = useSession()
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
 
-  const handleSelectPlan = (planId: string) => {
+  const handleSelectPlan = async (planId: string) => {
     if (planId === 'free') return
     
-    // Temporarily redirect to external page until backend is ready
-    window.location.href = 'https://www.hedra.com/plans'
+    // Check if user is logged in
+    if (!session) {
+      router.push('/login?callbackUrl=/membership')
+      return
+    }
+    
+    try {
+      // Create Stripe checkout session
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId,
+          billingCycle
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session')
+      }
+      
+      const { url } = await response.json()
+      
+      if (url) {
+        window.location.href = url
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to create checkout session',
+          variant: 'destructive'
+        })
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error)
+      toast({
+        title: 'Error',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive'
+      })
+    }
   }
 
   const handleBack = () => {
