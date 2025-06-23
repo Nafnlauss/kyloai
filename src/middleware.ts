@@ -5,24 +5,32 @@ import { getToken } from 'next-auth/jwt'
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Rotas que requerem autenticação
-  const protectedPaths = [
-    '/studio',
-    '/dashboard',
-    '/settings',
-    '/gallery',
-    '/generate',
-    '/billing',
-    '/credits',
-    '/admin'
+  // Rotas públicas (não precisam de autenticação)
+  const publicPaths = [
+    '/',              // Landing page APENAS
+    '/login',         // Login page
+    '/register',      // Register page
+    '/reset',         // Password reset
+    '/api/auth',      // Auth API routes
+    '/api/health',    // Health check
+    '/api/contact',   // Contact form API
+    '/api/stripe/webhook', // Stripe webhooks
+    '/privacy',       // Privacy policy
+    '/terms',         // Terms of service
+    '/about',         // About page
+    '/contact',       // Contact page
   ]
   
-  // Verifica se a rota atual requer autenticação
-  const isProtectedRoute = protectedPaths.some(path => 
-    pathname.startsWith(path)
-  )
+  // Verifica se é uma rota pública
+  const isPublicRoute = publicPaths.some(path => {
+    if (path === '/') {
+      return pathname === '/'
+    }
+    return pathname.startsWith(path)
+  })
   
-  if (isProtectedRoute) {
+  // Se NÃO é uma rota pública, requer autenticação
+  if (!isPublicRoute) {
     const token = await getToken({ 
       req: request,
       secret: process.env.NEXTAUTH_SECRET 
