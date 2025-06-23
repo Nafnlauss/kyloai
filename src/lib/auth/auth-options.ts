@@ -23,6 +23,7 @@ export const authOptions: NextAuthConfig = {
     error: '/login?error=true',
     verifyRequest: '/login?verify=true',
   },
+  trustHost: true, // Important for production deployments behind proxies
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
