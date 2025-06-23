@@ -11,7 +11,7 @@ COPY .npmrc ./
 COPY prisma ./prisma/
 
 # Install dependencies (this will also run postinstall and generate prisma)
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Copy all files
 COPY . .
