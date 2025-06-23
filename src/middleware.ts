@@ -1,9 +1,27 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { applyRateLimit } from '@/lib/security/rate-limit'
+import { csrfProtection } from '@/lib/security/csrf'
 
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
+
+  // Apply rate limiting to API routes
+  if (pathname.startsWith('/api/')) {
+    const rateLimitResponse = await applyRateLimit(request)
+    if (rateLimitResponse) {
+      return rateLimitResponse
+    }
+    
+    // Apply CSRF protection
+    if (process.env.ENABLE_CSRF_PROTECTION === 'true') {
+      const csrfResponse = await csrfProtection(request)
+      if (csrfResponse) {
+        return csrfResponse
+      }
+    }
+  }
 
   // Rotas públicas (não precisam de autenticação)
   const publicPaths = [

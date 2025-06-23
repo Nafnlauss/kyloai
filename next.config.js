@@ -1,3 +1,5 @@
+const { securityHeaders } = require('./src/lib/security/headers')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -32,6 +34,15 @@ const nextConfig = {
       };
     }
     return config;
+  },
+  async headers() {
+    return [
+      {
+        // Apply these headers to all routes in your application
+        source: '/:path*',
+        headers: securityHeaders,
+      },
+    ]
   },
 }
 
