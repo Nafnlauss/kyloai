@@ -18,10 +18,10 @@ export const authOptions: NextAuthConfig = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
-    error: '/auth/error',
-    verifyRequest: '/auth/verify-request',
+    signIn: '/login',
+    signOut: '/login',
+    error: '/login?error=true',
+    verifyRequest: '/login?verify=true',
   },
   providers: [
     GoogleProvider({
@@ -50,6 +50,11 @@ export const authOptions: NextAuthConfig = {
           
           if (user.lockedUntil && user.lockedUntil > new Date()) {
             throw new Error('Account locked. Please try again later.')
+          }
+          
+          // Check if email is verified for non-Google accounts
+          if (!user.emailVerified) {
+            throw new Error('Please verify your email before signing in.')
           }
           
           const isValid = await bcrypt.compare(password, user.passwordHash)
@@ -128,6 +133,8 @@ export const authOptions: NextAuthConfig = {
               name: user.name,
               image: user.image,
               emailVerified: new Date(),
+              credits: 300, // Créditos iniciais para novos usuários Google
+              creditsLastReset: new Date(),
             },
           })
         }

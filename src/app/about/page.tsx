@@ -9,6 +9,7 @@ import {
   ArrowRight,
   CheckCircle 
 } from 'lucide-react'
+import Image from 'next/image'
 
 export default function AboutPage() {
   return (
@@ -60,7 +61,13 @@ export default function AboutPage() {
             <div className="relative">
               <div className="aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-violet-600/20 p-8">
                 <div className="w-full h-full rounded-xl bg-black/50 flex items-center justify-center">
-                  <Video className="h-24 w-24 text-primary" />
+                  <Image 
+                    src="/logo_sem_fundo.png" 
+                    alt="Kylo Logo" 
+                    width={180} 
+                    height={180}
+                    className="mix-blend-lighten"
+                  />
                 </div>
               </div>
             </div>

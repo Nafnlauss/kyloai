@@ -25,7 +25,7 @@ export default function PrivacyPage() {
                 <h3 className="text-xl font-semibold mb-2">2.1 Information You Provide</h3>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Name and email address when creating an account</li>
-                  <li>Payment information (securely processed via Stripe/PayPal)</li>
+                  <li>Payment information (securely processed via Stripe)</li>
                   <li>Text prompts and video generation preferences</li>
                   <li>Customer support communications</li>
                 </ul>
@@ -56,7 +56,7 @@ export default function PrivacyPage() {
                 <h2 className="text-2xl font-semibold mb-4">4. Information Sharing</h2>
                 <p className="text-muted-foreground mb-2">We share information only with:</p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li><strong>Service Providers:</strong> Stripe, PayPal (payments), Luma AI, Kling AI (video generation)</li>
+                  <li><strong>Service Providers:</strong> Stripe (payments), Luma AI, Kling AI (video generation)</li>
                   <li><strong>Legal Compliance:</strong> When required by law or court order</li>
                   <li><strong>Rights Protection:</strong> To protect rights, property or safety</li>
                   <li><strong>With Your Consent:</strong> With your explicit authorization</li>

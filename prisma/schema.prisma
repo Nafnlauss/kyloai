@@ -1,10 +1,12 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
   provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 // Modelos com campos de segurança e auditoria
@@ -15,7 +17,7 @@ model User {
   name              String?
   passwordHash      String?        // Bcrypt hash
   image             String?
-  credits           Int            @default(300) // Créditos grátis iniciais
+  credits           Int            @default(300) // Créditos grátis iniciais (plano free)
   creditsLastReset  DateTime       @default(now()) // Para controlar reset mensal
   role              Role           @default(USER)
   isActive          Boolean        @default(true)

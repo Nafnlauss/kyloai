@@ -35,16 +35,9 @@ export function CreditBalance() {
     fetchCredits()
   }, [session, status])
 
-  // Se não estiver autenticado, mostra botão para fazer login
+  // Se não estiver autenticado, não mostra nada
   if (status === 'unauthenticated') {
-    return (
-      <Button variant="ghost" size="sm" asChild>
-        <Link href="/login" className="flex items-center gap-2">
-          <Coins className="h-4 w-4" />
-          <span className="hidden sm:inline">Sign in</span>
-        </Link>
-      </Button>
-    )
+    return null
   }
 
   // Se estiver carregando

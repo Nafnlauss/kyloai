@@ -11,6 +11,30 @@ export function DemoVideo() {
   // URL do vídeo demo - você pode substituir depois do commit
   const videoUrl = '/demo-video.mp4' // Você pode usar um vídeo temporário ou placeholder
   
+  // Posições fixas para as estrelas para evitar erro de hidratação
+  const starPositions = [
+    { left: '10%', top: '15%', delay: '0s' },
+    { left: '25%', top: '80%', delay: '0.5s' },
+    { left: '40%', top: '20%', delay: '1s' },
+    { left: '60%', top: '70%', delay: '1.5s' },
+    { left: '80%', top: '30%', delay: '2s' },
+    { left: '15%', top: '50%', delay: '2.5s' },
+    { left: '90%', top: '60%', delay: '3s' },
+    { left: '35%', top: '40%', delay: '3.5s' },
+    { left: '70%', top: '85%', delay: '4s' },
+    { left: '50%', top: '10%', delay: '4.5s' },
+    { left: '5%', top: '90%', delay: '0.2s' },
+    { left: '45%', top: '65%', delay: '0.8s' },
+    { left: '85%', top: '25%', delay: '1.3s' },
+    { left: '20%', top: '35%', delay: '1.8s' },
+    { left: '65%', top: '95%', delay: '2.3s' },
+    { left: '30%', top: '5%', delay: '2.8s' },
+    { left: '75%', top: '45%', delay: '3.3s' },
+    { left: '55%', top: '75%', delay: '3.8s' },
+    { left: '95%', top: '55%', delay: '4.3s' },
+    { left: '10%', top: '60%', delay: '4.8s' },
+  ]
+  
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden bg-black">
       {!isPlaying ? (
@@ -40,14 +64,14 @@ export function DemoVideo() {
           
           {/* Efeito visual de partículas */}
           <div className="absolute inset-0 opacity-30">
-            {[...Array(20)].map((_, i) => (
+            {starPositions.map((position, i) => (
               <div
                 key={i}
                 className="absolute animate-pulse"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 5}s`,
+                  left: position.left,
+                  top: position.top,
+                  animationDelay: position.delay,
                 }}
               >
                 <div className="h-1 w-1 bg-white rounded-full" />

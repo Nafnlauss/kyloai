@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/email/email-service'
+import { AccountLimiter } from '@/lib/security/account-limiter'
+import { randomBytes } from 'crypto'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -20,6 +22,20 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = registerSchema.parse(body)
+    
+    // Check for multiple account attempts (only for non-Google signups)
+    const accountLimiter = new AccountLimiter()
+    const canCreate = await accountLimiter.canCreateAccount(validatedData.email)
+    
+    if (!canCreate.allowed) {
+      return NextResponse.json(
+        { 
+          error: canCreate.reason || 'Unable to create account at this time',
+          requireSupport: true 
+        },
+        { status: 403 }
+      )
+    }
     
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -41,34 +57,27 @@ export async function POST(request: NextRequest) {
     const saltRounds = 12
     const passwordHash = await bcrypt.hash(validatedData.password, saltRounds)
     
-    // Create user with free plan
+    // Generate email verification token
+    const emailVerificationToken = randomBytes(32).toString('hex')
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    
+    // Create user with free credits
     const user = await prisma.user.create({
       data: {
         name: validatedData.name,
         email: validatedData.email.toLowerCase(),
         passwordHash,
-        credits: 300, // Welcome credits (updated from 10)
+        credits: 300, // Free credits for new users
+        creditsLastReset: new Date(), // Track when credits were given
         role, // Set admin role if email matches
+        emailVerified: null, // Email not verified yet
+        emailVerificationToken,
+        emailVerificationExpires,
       },
     })
     
-    // Create free subscription
-    const freePlan = await prisma.plan.findUnique({
-      where: { name: 'free' },
-    })
-    
-    if (freePlan) {
-      await prisma.subscription.create({
-        data: {
-          userId: user.id,
-          planId: freePlan.id,
-          status: 'ACTIVE',
-          interval: 'MONTHLY',
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-        },
-      })
-    }
+    // No subscription needed for free users
+    // Users only get subscriptions when they upgrade to paid plans
     
     // Create audit log
     await prisma.auditLog.create({
@@ -83,11 +92,17 @@ export async function POST(request: NextRequest) {
       },
     })
     
-    // Send welcome email
+    // Record account creation for anti-abuse system
+    await accountLimiter.recordAccountCreation(user.email)
+    
+    // Send welcome email with verification link
     try {
+      const verificationUrl = `${process.env.NEXTAUTH_URL}/api/auth/verify-email?token=${emailVerificationToken}`
+      
       await sendWelcomeEmail({
         email: user.email,
         name: user.name || 'User',
+        verificationUrl, // Pass verification URL to email template
       })
     } catch (emailError) {
       console.error('Failed to send welcome email:', emailError)
@@ -96,7 +111,8 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully',
+      message: 'Account created successfully. Please check your email to verify your account.',
+      requireEmailVerification: true,
       user: {
         id: user.id,
         email: user.email,

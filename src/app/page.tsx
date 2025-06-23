@@ -3,18 +3,20 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { BillingSwitch } from '@/components/ui/billing-switch'
 import { CreditBalance } from '@/components/ui/credit-balance'
 import { DemoVideo } from '@/components/ui/demo-video'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 import { 
   ArrowRight, 
   Sparkles, 
   Video, 
   Zap, 
   Check,
+  X,
   Star,
   Play,
   Shield,
@@ -34,13 +36,17 @@ export default function HomePage() {
       {/* Header */}
       <header className="fixed top-0 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-2">
-              <Video className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">Kylo</span>
-            </Link>
-            <div className="text-sm text-muted-foreground">by Kylo</div>
-          </div>
+          <Link href="/" className="flex items-center space-x-2">
+            <Image 
+              src="/logo_sem_fundo.png" 
+              alt="Kylo Logo" 
+              width={32} 
+              height={32}
+              className="h-8 w-8"
+              priority
+            />
+            <span className="font-bold text-xl">Kylo</span>
+          </Link>
           
           <nav className="hidden md:flex items-center space-x-8">
             <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition">
@@ -61,7 +67,6 @@ export default function HomePage() {
           </nav>
           
           <div className="flex items-center space-x-4">
-            <CreditBalance />
             <Button variant="ghost" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
@@ -210,8 +215,8 @@ export default function HomePage() {
       </section>
 
       {/* Pricing Preview */}
-      <section id="pricing" className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+      <section id="pricing" className="py-20 px-4 overflow-x-hidden">
+        <div className="container mx-auto max-w-7xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Simple and Transparent Plans
@@ -220,89 +225,152 @@ export default function HomePage() {
               Choose the perfect plan for your needs
             </p>
             
-            <div className="flex items-center justify-center gap-4">
-              <span 
-                className={cn(
-                  "text-base font-medium transition-colors cursor-pointer",
-                  !isYearly ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
-                )}
+            {/* Billing Toggle */}
+            <div className="inline-flex items-center bg-zinc-800 ring-1 ring-zinc-700 p-1 rounded-full">
+              <button
                 onClick={() => setIsYearly(false)}
+                className={`px-6 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  !isYearly
+                    ? 'bg-white text-zinc-900'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
               >
                 Monthly
-              </span>
-              <BillingSwitch
-                checked={isYearly}
-                onCheckedChange={setIsYearly}
-              />
-              <span 
-                className={cn(
-                  "text-base font-medium transition-colors cursor-pointer",
-                  isYearly ? 'text-foreground' : 'text-muted-foreground hover:text-foreground/80'
-                )}
+              </button>
+              <button
                 onClick={() => setIsYearly(true)}
+                className={`px-6 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  isYearly
+                    ? 'bg-white text-zinc-900'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
               >
                 Yearly
                 {isYearly && (
-                  <Badge variant="secondary" className="ml-2">
-                    Save 20%
-                  </Badge>
+                  <Badge className="ml-2 bg-green-600 text-white text-xs">Save 20%</Badge>
                 )}
-              </span>
+              </button>
             </div>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {plans.map((plan, i) => (
-              <Card key={i} className={`relative ${plan.featured ? 'border-primary shadow-xl bg-primary/5 scale-105' : ''}`}>
+          {/* Plans Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            {plans.map((plan) => (
+              <Card
+                key={plan.id}
+                className={`relative rounded-2xl transition-all ${
+                  plan.featured
+                    ? 'border-[#A259FF] shadow-xl ring-2 ring-[#A259FF]/20 scale-105'
+                    : plan.id === 'free' 
+                      ? 'border-zinc-800 bg-zinc-900/30 opacity-80'
+                      : 'border-zinc-800 bg-zinc-900/50 hover:border-zinc-700'
+                }`}
+              >
                 {plan.featured && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10">
                     <Badge className="bg-gradient-to-r from-primary to-violet-600 text-white border-0 px-4 py-1">
                       <Star className="h-3 w-3 mr-1" />
                       Popular
                     </Badge>
                   </div>
                 )}
-                <CardContent className="p-6">
-                  <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                  <div className="mb-4">
-                    {isYearly && plan.priceYearly && plan.price !== '0' ? (
-                      <>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-lg text-muted-foreground line-through">${plan.price}</span>
-                          <span className="text-4xl font-bold">${(parseFloat(plan.priceYearly) / 12).toFixed(2)}</span>
-                          <span className="text-muted-foreground">/month</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Billed ${plan.priceYearly} annually
-                        </div>
-                        <div className="text-sm text-green-600 font-medium">
-                          Save 20%
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-4xl font-bold">${plan.price}</span>
-                        <span className="text-muted-foreground">/month</span>
-                      </>
+
+                <CardHeader className="text-center pb-4 pt-8">
+                  <CardTitle className="text-2xl font-bold mb-2">{plan.name}</CardTitle>
+                  <p className="text-sm text-zinc-400">{plan.description}</p>
+                </CardHeader>
+
+                <CardContent className="px-6 pb-6">
+                  <div className="text-center mb-6">
+                    <div className="mb-2">
+                      <span className="text-4xl font-bold">
+                        {plan.price.monthly === 0 
+                          ? 'Free' 
+                          : !isYearly 
+                            ? `$${plan.price.monthly}`
+                            : `$${(plan.price.yearly / 12).toFixed(2)}`
+                        }
+                      </span>
+                      {plan.price.monthly !== 0 && (
+                        <span className="text-zinc-400 ml-2">/month</span>
+                      )}
+                    </div>
+                    {isYearly && plan.price.yearly !== 0 && (
+                      <p className="text-sm text-zinc-500 mt-1">
+                        Billed annually at ${plan.price.yearly}
+                      </p>
+                    )}
+                    <div className="text-[#A259FF] font-semibold mt-3">
+                      {plan.credits.toLocaleString()} credits
+                      {plan.id !== 'free' && ' per month'}
+                    </div>
+                    {plan.id !== 'free' && (
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {isYearly 
+                          ? 'Cumulative credits (never expire)' 
+                          : 'Monthly credits (reset each month)'}
+                      </p>
                     )}
                   </div>
-                  <p className="text-muted-foreground mb-6">{plan.description}</p>
-                  <Button className="w-full" variant={plan.featured ? 'default' : 'outline'} asChild>
-                    <Link href="/register">
-                      Start Now
-                    </Link>
-                  </Button>
-                  <ul className="mt-6 space-y-2">
-                    {plan.features.map((feature, j) => (
-                      <li key={j} className="flex items-center gap-2">
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="text-sm">{feature}</span>
+
+                  <ul className="space-y-3 text-sm">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        {feature.included ? (
+                          <Check className="h-4 w-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <X className="h-4 w-4 text-zinc-600 mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className={`${!feature.included ? 'text-zinc-500 line-through' : ''}`}>
+                          {feature.text}
+                        </span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
+
+                <CardFooter className="px-6 pb-6">
+                  <Button
+                    className={`w-full h-11 font-medium ${
+                      plan.featured
+                        ? 'bg-[#A259FF] hover:bg-[#9148e0] text-white'
+                        : 'bg-zinc-800 hover:bg-zinc-700 text-white'
+                    }`}
+                    asChild
+                  >
+                    <Link href="/register">
+                      {plan.buttonText}
+                    </Link>
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
+          </div>
+
+          {/* Enterprise Contact Section */}
+          <div className="mt-12 mb-12">
+            <div className="max-w-4xl mx-auto bg-gradient-to-r from-[#A259FF]/10 to-violet-600/10 rounded-2xl border border-[#A259FF]/20 p-6 md:p-8">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="text-center md:text-left">
+                  <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-[#A259FF] to-violet-400 bg-clip-text text-transparent">
+                    Need a custom solution?
+                  </h3>
+                  <p className="text-zinc-300 text-sm md:text-base">
+                    Get unlimited generations, priority support, and custom integrations for your business.
+                  </p>
+                </div>
+                <Button 
+                  className="bg-[#A259FF] hover:bg-[#9148e0] text-white px-8 h-12 text-base font-medium whitespace-nowrap"
+                  onClick={() => {
+                    const email = 'support@kylo.video';
+                    window.location.href = `mailto:${email}?subject=Enterprise%20Plan%20Inquiry`;
+                  }}
+                >
+                  <Star className="w-4 h-4 mr-2" />
+                  Talk to Sales
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -345,8 +413,8 @@ export default function HomePage() {
                         <p className="text-3xl font-bold text-primary">6</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Max duration</p>
-                        <p className="text-2xl font-semibold">5 sec</p>
+                        <p className="text-sm text-muted-foreground">Video quality</p>
+                        <p className="text-2xl font-semibold">Standard</p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
@@ -374,8 +442,8 @@ export default function HomePage() {
                         <p className="text-3xl font-bold text-primary">8</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Max duration</p>
-                        <p className="text-2xl font-semibold">5 sec</p>
+                        <p className="text-sm text-muted-foreground">Video quality</p>
+                        <p className="text-2xl font-semibold">Standard</p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
@@ -415,8 +483,8 @@ export default function HomePage() {
                         <p className="text-3xl font-bold text-primary">10</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Max duration</p>
-                        <p className="text-2xl font-semibold">10 sec</p>
+                        <p className="text-sm text-muted-foreground">Video quality</p>
+                        <p className="text-2xl font-semibold">Ultra HD</p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
@@ -445,8 +513,8 @@ export default function HomePage() {
                         <p className="text-3xl font-bold text-primary">10</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Max duration</p>
-                        <p className="text-2xl font-semibold">10 sec</p>
+                        <p className="text-sm text-muted-foreground">Video quality</p>
+                        <p className="text-2xl font-semibold">Professional</p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
@@ -474,8 +542,8 @@ export default function HomePage() {
                         <p className="text-3xl font-bold text-primary">20</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Max duration</p>
-                        <p className="text-2xl font-semibold">15 sec</p>
+                        <p className="text-sm text-muted-foreground">Video quality</p>
+                        <p className="text-2xl font-semibold">Cinematic</p>
                       </div>
                     </div>
                     <div className="pt-2 border-t">
@@ -537,7 +605,7 @@ export default function HomePage() {
                       <p className="text-2xl font-bold">1,000</p>
                       <p className="text-sm text-muted-foreground">credits</p>
                       <div className="pt-2 border-t mt-2">
-                        <p className="text-2xl font-semibold">$9</p>
+                        <p className="text-2xl font-semibold">$8</p>
                       </div>
                     </div>
                   </CardContent>
@@ -587,10 +655,6 @@ export default function HomePage() {
                   </CardContent>
                 </Card>
               </div>
-              
-              <p className="text-sm text-muted-foreground mt-6">
-                * All prices include 100% markup for platform sustainability and development
-              </p>
             </div>
           </div>
         </div>
@@ -620,36 +684,42 @@ export default function HomePage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <Link href="/" className="flex items-center space-x-2 mb-4">
-                <Video className="h-6 w-6 text-primary" />
+                <Image 
+                  src="/logo_sem_fundo.png" 
+                  alt="Kylo Logo" 
+                  width={24} 
+                  height={24}
+                  className="h-6 w-6"
+                />
                 <span className="font-bold text-xl">Kylo</span>
               </Link>
               <p className="text-sm text-muted-foreground">
-                Transform your ideas into amazing videos with the power of AI.
+                Transform your ideas into stunning videos with the power of AI.
               </p>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><Link href="#features" className="text-sm text-muted-foreground hover:text-foreground">Features</Link></li>
-                <li><Link href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</Link></li>
-                <li><Link href="#examples" className="text-sm text-muted-foreground hover:text-foreground">Examples</Link></li>
+                <li><a href="#features" target="_blank" rel="noopener noreferrer" aria-label="Open Resources in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Resources</a></li>
+                <li><a href="#pricing" target="_blank" rel="noopener noreferrer" aria-label="Open Pricing in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Pricing</a></li>
+                <li><a href="#examples" target="_blank" rel="noopener noreferrer" aria-label="Open Examples in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Examples</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2">
-                <li><Link href="/about" className="text-sm text-muted-foreground hover:text-foreground">About Us</Link></li>
-                <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground">Contact</Link></li>
+                <li><a href="/about" target="_blank" rel="noopener noreferrer" aria-label="Open About Us in a new tab" className="text-sm text-muted-foreground hover:text-foreground">About Us</a></li>
+                <li><a href="/contact" target="_blank" rel="noopener noreferrer" aria-label="Open Contact in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Contact</a></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Legal</h4>
               <ul className="space-y-2">
-                <li><Link href="/privacy" className="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</Link></li>
+                <li><a href="/privacy" target="_blank" rel="noopener noreferrer" aria-label="Open Privacy Policy in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
+                <li><a href="/terms" target="_blank" rel="noopener noreferrer" aria-label="Open Terms of Service in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Terms of Service</a></li>
               </ul>
             </div>
           </div>
@@ -713,74 +783,91 @@ const steps = [
 
 const plans = [
   {
+    id: 'free',
     name: 'Free',
-    price: '0',
-    priceYearly: '0',
+    price: {
+      monthly: 0,
+      yearly: 0,
+    },
     description: 'Perfect for trying out',
+    credits: 300,
     features: [
-      '300 free credits',
-      'Videos up to 5 seconds',
-      'Slower generation speed',
-      'No commercial use',
-      'Cannot buy credit packages',
-      'Watermark',
-      'Email support'
+      { text: '300 free credits', included: true },
+      { text: 'Videos up to 5 seconds', included: true },
+      { text: 'Slower generation speed', included: true },
+      { text: 'Email support', included: true },
+      { text: 'Commercial use allowed', included: false },
+      { text: 'Buy additional credits', included: false },
+      { text: 'Watermark-free videos', included: false },
     ],
-    featured: false
+    featured: false,
+    buttonText: 'Start Free',
   },
   {
+    id: 'lite',
     name: 'Lite',
-    price: '8',
-    priceYearly: '76.80',
+    price: {
+      monthly: 8,
+      yearly: 76.80,
+    },
     description: 'Great for beginners',
+    credits: 1000,
     features: [
-      '1,000 credits per month',
-      'Credits do not accumulate',
-      'Commercial use allowed',
-      'Buy additional credits',
-      'Videos up to 10 seconds',
-      'HD resolution',
-      'No watermark',
-      'Standard queue',
-      'Standard support'
+      { text: '1,000 credits per month', included: true },
+      { text: 'Commercial use allowed', included: true },
+      { text: 'Buy additional credits', included: true },
+      { text: 'Videos up to 10 seconds', included: true },
+      { text: 'HD resolution', included: true },
+      { text: 'No watermark', included: true },
+      { text: 'Standard queue', included: true },
+      { text: 'Standard support', included: true },
     ],
-    featured: false
+    featured: false,
+    buttonText: 'Start Now',
   },
   {
+    id: 'creator',
     name: 'Creator',
-    price: '26',
-    priceYearly: '249.60',
+    price: {
+      monthly: 26,
+      yearly: 249.60,
+    },
     description: 'Ideal for content creators',
+    credits: 4000,
     features: [
-      '4,000 credits per month',
-      'Credits do not accumulate',
-      'Commercial use allowed',
-      'Buy additional credits',
-      'Videos up to 20 seconds',
-      'Full HD resolution',
-      'No watermark',
-      'Priority queue (2x faster)',
-      'Priority support'
+      { text: '4,000 credits per month', included: true },
+      { text: 'Commercial use allowed', included: true },
+      { text: 'Buy additional credits', included: true },
+      { text: 'Videos up to 20 seconds', included: true },
+      { text: 'Full HD resolution', included: true },
+      { text: 'No watermark', included: true },
+      { text: 'Priority queue (2x faster)', included: true },
+      { text: 'Priority support', included: true },
     ],
-    featured: true
+    featured: true,
+    buttonText: 'Start Now',
   },
   {
+    id: 'professional',
     name: 'Professional',
-    price: '68',
-    priceYearly: '652.80',
+    price: {
+      monthly: 68,
+      yearly: 652.80,
+    },
     description: 'For intensive commercial use',
+    credits: 12000,
     features: [
-      '12,000 credits per month',
-      'Credits do not accumulate',
-      'Commercial use allowed',
-      'Buy additional credits',
-      'Videos up to 30 seconds',
-      '4K resolution',
-      'No watermark',
-      'VIP queue (5x faster)',
-      'Advanced analytics',
-      'Dedicated support'
+      { text: '12,000 credits per month', included: true },
+      { text: 'Commercial use allowed', included: true },
+      { text: 'Buy additional credits', included: true },
+      { text: 'Videos up to 30 seconds', included: true },
+      { text: '4K resolution', included: true },
+      { text: 'No watermark', included: true },
+      { text: 'VIP queue (5x faster)', included: true },
+      { text: 'Advanced analytics', included: true },
+      { text: 'Dedicated support', included: true },
     ],
-    featured: false
+    featured: false,
+    buttonText: 'Start Now',
   }
 ]

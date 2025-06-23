@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
-import { FloatingCredits } from '@/components/ui/floating-credits'
 import { CookieConsent } from '@/components/ui/cookie-consent'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
+import { ErrorLogger } from './error-logger'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   keywords: 'AI video, text to video, video generation, Luma, Kling AI',
   authors: [{ name: 'Kylo' }],
   creator: 'Kylo',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/logo_sem_fundo.png', type: 'image/png' }
+    ],
+    apple: '/apple-icon.png',
+    shortcut: '/favicon.ico'
+  },
   openGraph: {
     title: 'Kylo - Create Stunning AI Videos',
     description: 'Generate professional AI videos from text prompts using advanced AI models.',
@@ -47,12 +56,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+      </head>
+      <body className={`${inter.className} dark`} suppressHydrationWarning>
         <Providers>
+          {/* {process.env.NODE_ENV === 'development' && <ErrorLogger />} */}
           {children}
-          <FloatingCredits />
-          <CookieConsent />
+          {/* <CookieConsent /> */}
         </Providers>
         {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
           <GoogleAnalytics measurementId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, Mail, Lock, AlertCircle } from 'lucide-react'
+import { Loader2, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -26,9 +26,13 @@ type LoginData = z.infer<typeof loginSchema>
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || '/studio/video'
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  
+  // Check for verification success or error messages
+  const verified = searchParams.get('verified')
+  const errorType = searchParams.get('error')
 
   const {
     register,
@@ -37,6 +41,35 @@ function LoginForm() {
   } = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
   })
+
+  // Handle verification messages
+  useEffect(() => {
+    if (verified === 'true') {
+      toast({
+        title: 'Email verified successfully!',
+        description: 'You can now sign in to your account.',
+        duration: 5000,
+      })
+      // Clean up URL
+      router.replace('/login')
+    } else if (errorType) {
+      let errorMessage = 'An error occurred'
+      switch (errorType) {
+        case 'missing-token':
+          errorMessage = 'Verification link is invalid or missing'
+          break
+        case 'invalid-token':
+          errorMessage = 'Verification link has expired or is invalid'
+          break
+        case 'verification-failed':
+          errorMessage = 'Email verification failed. Please try again'
+          break
+      }
+      setError(errorMessage)
+      // Clean up URL
+      router.replace('/login')
+    }
+  }, [verified, errorType, router])
 
   const onSubmit = async (data: LoginData) => {
     try {
@@ -52,6 +85,8 @@ function LoginForm() {
       if (result?.error) {
         if (result.error.includes('locked')) {
           setError('Account locked. Please try again later.')
+        } else if (result.error.includes('verify your email')) {
+          setError('Please verify your email before signing in. Check your inbox for the verification link.')
         } else {
           setError('Invalid email or password')
         }
@@ -110,6 +145,15 @@ function LoginForm() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
+              {verified === 'true' && (
+                <Alert>
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Email verified successfully! You can now sign in.
+                  </AlertDescription>
                 </Alert>
               )}
 

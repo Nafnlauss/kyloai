@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth/config'
-import { CreditBalance } from '@/components/ui/credit-balance'
+import { authOptions } from '@/lib/auth/auth-options'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Video, Home, Settings, LogOut } from 'lucide-react'
@@ -35,25 +34,30 @@ export default async function DashboardLayout({
                   Dashboard
                 </Link>
               </Button>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/generate">
+              <Button variant="ghost" size="sm" asChild className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Link href="/studio">
                   <Video className="h-4 w-4 mr-2" />
-                  Gerar Vídeo
+                  AI Studio
                 </Link>
               </Button>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/videos">
+                <Link href="/dashboard/videos">
                   <Video className="h-4 w-4 mr-2" />
                   Meus Vídeos
+                </Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/dashboard/gallery">
+                  <Video className="h-4 w-4 mr-2" />
+                  Galeria
                 </Link>
               </Button>
             </nav>
           </div>
           
           <div className="flex items-center space-x-4">
-            <CreditBalance />
             <Button variant="ghost" size="sm" asChild>
-              <Link href="/settings">
+              <Link href="/dashboard/settings">
                 <Settings className="h-4 w-4" />
               </Link>
             </Button>

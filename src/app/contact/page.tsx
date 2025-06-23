@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { FAQAccordion } from '@/components/ui/faq-accordion'
 import { useToast } from '@/hooks/use-toast'
 import { 
   Mail, 
@@ -14,6 +15,49 @@ import {
   Clock,
   Loader2
 } from 'lucide-react'
+
+const faqItems = [
+  {
+    id: '1',
+    question: 'How do I purchase extra credits?',
+    answer: 'You can purchase additional credits directly from your dashboard. Navigate to the "Billing" section and choose from our credit packages. Credits are added instantly to your account after payment confirmation.'
+  },
+  {
+    id: '2',
+    question: 'Do my credits expire?',
+    answer: 'For monthly plans, credits do not accumulate and expire at the end of each billing cycle. However, for annual plans, credits are cumulative and never expire as long as your subscription is active. Purchased credit packages also never expire.'
+  },
+  {
+    id: '3',
+    question: 'What video resolutions are supported?',
+    answer: 'We support multiple resolutions depending on your plan and the AI model used. Standard quality offers 720p, while premium plans can generate videos in Full HD (1080p) and 4K resolution. The Kling V2.1 model supports up to cinematic 4K quality.'
+  },
+  {
+    id: '4',
+    question: 'Can I use the videos for commercial purposes?',
+    answer: 'Yes! All paid plans (Lite, Creator, and Professional) allow full commercial use of generated videos without any watermarks. Only the free plan restricts commercial use and includes a watermark.'
+  },
+  {
+    id: '5',
+    question: 'How long does video generation take?',
+    answer: 'Generation time varies by model and video length. API V1 models typically take 2-3 minutes, while API V2 premium models take 3-5 minutes. Priority queue access (available in Creator and Professional plans) can reduce wait times significantly.'
+  },
+  {
+    id: '6',
+    question: 'What payment methods do you accept?',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express), and for Brazilian customers, we also support PIX, boleto, and local credit cards through our Asaas integration.'
+  },
+  {
+    id: '7',
+    question: 'Can I cancel my subscription anytime?',
+    answer: 'Yes, you can cancel your subscription at any time from your account settings. Your plan will remain active until the end of the current billing period, and you\'ll retain access to all features until then.'
+  },
+  {
+    id: '8',
+    question: 'Is there an API available for developers?',
+    answer: 'Yes! Creator and Professional plans include API access. You can find detailed documentation and your API keys in the dashboard. Our API supports both REST and webhook integrations for seamless automation.'
+  }
+]
 
 export default function ContactPage() {
   const { toast } = useToast()
@@ -217,6 +261,22 @@ export default function ContactPage() {
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-16 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Find quick answers to common questions
+            </p>
+          </div>
+          
+          <FAQAccordion items={faqItems} />
         </div>
       </section>
 
