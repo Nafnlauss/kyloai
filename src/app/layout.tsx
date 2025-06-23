@@ -56,13 +56,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.png" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-icon.png" />
       </head>
-      <body className={`${inter.className} dark`} suppressHydrationWarning>
+      <body className={inter.className} suppressHydrationWarning>
         <Providers>
           {/* {process.env.NODE_ENV === 'development' && <ErrorLogger />} */}
           {children}

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { BillingSwitch } from '@/components/ui/billing-switch'
 import { CreditBalance } from '@/components/ui/credit-balance'
 import { DemoVideo } from '@/components/ui/demo-video'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { 
@@ -67,6 +68,7 @@ export default function HomePage() {
           </nav>
           
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <Button variant="ghost" asChild>
               <Link href="/login">Sign In</Link>
             </Button>

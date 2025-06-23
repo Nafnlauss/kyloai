@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { LogOut, Settings, User } from 'lucide-react'
 import { signOut } from 'next-auth/react'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function AdminHeader() {
   const { data: session } = useSession()
@@ -27,6 +28,7 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

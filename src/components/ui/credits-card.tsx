@@ -84,6 +84,14 @@ export function CreditsCard() {
   }
 
   const handleBuyCredits = () => {
+    // Check if user is logged in
+    if (!session) {
+      setShowOptionsModal(false)
+      // Import toast would be needed here, but for now we'll use alert
+      alert('Please login to purchase credits.')
+      return
+    }
+    
     if (userPlan === 'Free') {
       setShowOptionsModal(false)
       setShowUpgradeModal(true)

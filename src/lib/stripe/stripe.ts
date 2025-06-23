@@ -161,4 +161,4 @@ export async function reactivateSubscription(subscriptionId: string) {
 }
 
 // Export stripe getter for direct access when needed
-export { getStripe as stripe }
+export const stripe = getStripe
