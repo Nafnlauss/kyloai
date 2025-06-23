@@ -17,7 +17,7 @@ const ContentSecurityPolicy = `
 `
 
 // Security headers configuration for Next.js
-export const securityHeaders = [
+const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
     value: 'on'
@@ -51,3 +51,5 @@ export const securityHeaders = [
     value: ContentSecurityPolicy.replace(/\s{2,}/g, ' ').trim()
   }
 ]
+
+module.exports = { securityHeaders }
