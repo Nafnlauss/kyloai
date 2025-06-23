@@ -1,7 +1,7 @@
-# Simple Dockerfile for Railway
+# Railway Dockerfile - Updated for Prisma compatibility
 FROM node:20-alpine
 
-# Install OpenSSL and other dependencies for Prisma
+# Install dependencies for Prisma on Alpine Linux
 RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /app
