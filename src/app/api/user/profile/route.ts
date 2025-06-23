@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { createAuditLog, AUDIT_ACTIONS } from '@/lib/audit'
 
+export const dynamic = 'force-dynamic'
+
 const updateProfileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100).optional(),
   bio: z.string().max(500, 'Bio must be less than 500 characters').optional(),
@@ -31,6 +33,13 @@ export async function GET() {
         location: true,
         image: true,
         createdAt: true,
+        credits: true,
+        subscription: {
+          select: {
+            plan: true,
+            status: true,
+          }
+        }
       }
     })
 
@@ -38,7 +47,10 @@ export async function GET() {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ user })
+    return NextResponse.json({ 
+      ...user,
+      subscription: user.subscription
+    })
   } catch (error) {
     console.error('Error fetching profile:', error)
     return NextResponse.json(
