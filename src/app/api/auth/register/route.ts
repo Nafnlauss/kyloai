@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/email/email-service'
-import { AccountLimiter } from '@/lib/security/account-limiter-server'
+import { AccountLimiter } from '@/lib/security/account-limiter'
 import { randomBytes } from 'crypto'
 
 const registerSchema = z.object({

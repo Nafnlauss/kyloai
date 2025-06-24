@@ -70,9 +70,11 @@ export class AccountLimiter {
 
   private checkLocalStorage(): DeviceData | null {
     try {
-      const data = localStorage.getItem(this.storageKey)
-      if (data) {
-        return JSON.parse(data)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const data = localStorage.getItem(this.storageKey)
+        if (data) {
+          return JSON.parse(data)
+        }
       }
     } catch (error) {
       console.error('Error reading localStorage:', error)
@@ -82,9 +84,12 @@ export class AccountLimiter {
 
   private async generateFingerprint(): Promise<string> {
     try {
-      const fp = await FingerprintJS.load()
-      const result = await fp.get()
-      return result.visitorId
+      if (typeof window !== 'undefined') {
+        const fp = await FingerprintJS.load()
+        const result = await fp.get()
+        return result.visitorId
+      }
+      return 'server-side-' + Math.random().toString(36)
     } catch (error) {
       console.error('Error generating fingerprint:', error)
       // Fallback to basic fingerprint
@@ -93,6 +98,10 @@ export class AccountLimiter {
   }
 
   private generateBasicFingerprint(): string {
+    if (typeof window === 'undefined') {
+      return 'server-' + Math.random().toString(36).substring(7)
+    }
+    
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     
@@ -137,10 +146,12 @@ export class AccountLimiter {
     // In a real implementation, this would check against a backend database
     // For now, we'll use localStorage as a simple implementation
     try {
-      const key = `fp_${fingerprint}`
-      const data = localStorage.getItem(key)
-      if (data) {
-        return JSON.parse(data)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const key = `fp_${fingerprint}`
+        const data = localStorage.getItem(key)
+        if (data) {
+          return JSON.parse(data)
+        }
       }
     } catch (error) {
       console.error('Error checking fingerprint history:', error)
@@ -160,6 +171,10 @@ export class AccountLimiter {
   }
 
   private async getDeviceProfile(): Promise<{ suspiciousPatterns: boolean }> {
+    if (typeof window === 'undefined') {
+      return { suspiciousPatterns: false }
+    }
+    
     const patterns = {
       // Check for automation tools
       hasWebdriver: navigator.webdriver === true,
@@ -177,6 +192,7 @@ export class AccountLimiter {
   }
 
   private checkHeadlessIndicators(): boolean {
+    if (typeof window === 'undefined') return false
     return (
       !navigator.plugins?.length ||
       navigator.userAgent.includes('HeadlessChrome') ||
@@ -185,6 +201,7 @@ export class AccountLimiter {
   }
 
   private checkUnusualDimensions(): boolean {
+    if (typeof window === 'undefined') return false
     return (
       screen.width === 0 || 
       screen.height === 0 ||
@@ -193,6 +210,7 @@ export class AccountLimiter {
   }
 
   private checkMissingFeatures(): boolean {
+    if (typeof window === 'undefined') return false
     return (
       !window.MediaStreamTrack ||
       !window.RTCPeerConnection ||
@@ -201,6 +219,8 @@ export class AccountLimiter {
   }
 
   async recordAccountCreation(email: string, fingerprint?: string): Promise<void> {
+    if (typeof window === 'undefined') return
+    
     // Update localStorage
     const localData = this.checkLocalStorage() || {
       fingerprint: fingerprint || await this.generateFingerprint(),
@@ -223,7 +243,9 @@ export class AccountLimiter {
   }
 
   clearDeviceData(): void {
-    localStorage.removeItem(this.storageKey)
-    // Note: We intentionally don't clear fingerprint data
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.removeItem(this.storageKey)
+      // Note: We intentionally don't clear fingerprint data
+    }
   }
 }
