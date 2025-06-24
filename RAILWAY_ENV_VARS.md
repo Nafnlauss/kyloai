@@ -1,94 +1,61 @@
-# Variáveis de Ambiente Necessárias no Railway
+# 🚨 IMPORTANTE: Variáveis de Ambiente para Railway
 
-## 🚨 CONFIGURAÇÃO URGENTE PARA KYLO.VIDEO
+## Para o Google OAuth funcionar em produção, adicione estas variáveis no Railway:
 
-### Variáveis Essenciais para OAuth Funcionar:
+### 1. Acesse o Railway Dashboard
+https://railway.app/
+
+### 2. Vá em Variables do seu projeto
+
+### 3. Adicione/Atualize estas variáveis:
 
 ```env
-# URLs do Aplicativo (USE SEU DOMÍNIO!)
-NEXTAUTH_URL=https://kylo.video
-NEXT_PUBLIC_APP_URL=https://kylo.video
-
-# IMPORTANTE: Adicione esta variável para resolver problemas de redirecionamento
-AUTH_TRUST_HOST=true
+# CRÍTICO PARA OAUTH
+NEXTAUTH_URL=https://kyloai-production.up.railway.app
 
 # Google OAuth
-GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=seu-secret
+GOOGLE_CLIENT_ID=591777452871-aefk8i1utkbk4k5eh35lr1i1rstrhaje.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=(use o secret do seu .env local)
 
-# Segurança
-NEXTAUTH_SECRET=gere-uma-string-aleatoria-segura
+# Se você tem domínio customizado
+# NEXTAUTH_URL=https://kylo.video
 ```
 
-### Por que AUTH_TRUST_HOST=true?
+### 4. No Google Console, adicione TODAS estas URLs:
 
-Esta variável diz ao NextAuth para confiar no host header enviado pelo proxy reverso (Railway). Sem ela, o NextAuth pode usar localhost como URL base, causando os redirecionamentos incorretos.
-
-### Checklist de Configuração:
-
-1. **No Railway:**
-   - [ ] `NEXTAUTH_URL` = `https://kylo.video`
-   - [ ] `NEXT_PUBLIC_APP_URL` = `https://kylo.video`
-   - [ ] `AUTH_TRUST_HOST` = `true`
-   - [ ] Todas as outras variáveis de ambiente necessárias
-
-2. **No Google Console:**
-   - [ ] Authorized JavaScript origins: `https://kylo.video`
-   - [ ] Authorized redirect URIs: `https://kylo.video/api/auth/callback/google`
-
-3. **Verificação:**
-   ```bash
-   # Teste se a API está respondendo
-   curl https://kylo.video/api/health
-   
-   # Verifique os headers
-   curl -I https://kylo.video
-   ```
-
-### Problema Comum: Redirecionamento para localhost
-
-Se ainda estiver redirecionando para localhost após configurar tudo:
-
-1. Limpe TODOS os cookies do domínio kylo.video
-2. Teste em uma aba anônima
-3. Verifique se o deploy foi concluído no Railway
-4. Aguarde 2-3 minutos para as variáveis de ambiente serem aplicadas
-
-### Variáveis Completas Recomendadas:
-
-```env
-# App
-NEXTAUTH_URL=https://kylo.video
-NEXT_PUBLIC_APP_URL=https://kylo.video
-AUTH_TRUST_HOST=true
-NODE_ENV=production
-
-# Database
-DATABASE_URL=postgresql://...
-DIRECT_URL=postgresql://...
-
-# Auth
-NEXTAUTH_SECRET=sua-chave-secreta
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-
-# Email
-EMAIL_FROM=noreply@kylo.video
-SMTP_HOST=...
-SMTP_PORT=...
-SMTP_USER=...
-SMTP_PASSWORD=...
-
-# APIs
-STRIPE_SECRET_KEY=...
-LUMA_API_KEY=...
-# etc...
+#### Authorized JavaScript origins:
+```
+https://kylo.video
+https://www.kylo.video
+https://kyloai-production.up.railway.app
+http://localhost:3000
+http://localhost:3001
 ```
 
-## Ação Imediata:
+#### Authorized redirect URIs:
+```
+https://kylo.video/api/auth/callback/google
+https://www.kylo.video/api/auth/callback/google
+https://kyloai-production.up.railway.app/api/auth/callback/google
+http://localhost:3000/api/auth/callback/google
+http://localhost:3001/api/auth/callback/google
+```
 
-1. Vá ao Railway
-2. Adicione `AUTH_TRUST_HOST=true`
-3. Verifique se `NEXTAUTH_URL=https://kylo.video`
-4. Deploy
-5. Teste em aba anônima!
+### 5. Após adicionar as variáveis:
+- Clique em "Deploy" no Railway
+- Aguarde o deploy concluir
+- Teste o login com Google
+
+## ⚠️ Possíveis Problemas:
+
+1. **Se usar domínio customizado (kylo.video)**:
+   - NEXTAUTH_URL deve ser https://kylo.video
+   - Certifique-se que o domínio está configurado corretamente no Railway
+
+2. **Se NÃO usar domínio customizado**:
+   - NEXTAUTH_URL deve ser https://kyloai-production.up.railway.app
+
+3. **Erro 401 invalid_client**:
+   - Verifique se TODAS as URLs estão no Google Console
+   - Aguarde 5-10 minutos após adicionar URLs
+   - Limpe cache do navegador

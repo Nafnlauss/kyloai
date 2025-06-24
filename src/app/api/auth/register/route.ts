@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/email/email-service'
 import { AccountLimiter } from '@/lib/security/account-limiter'
+import { DeviceTracker } from '@/lib/security/device-tracker'
 import { randomBytes } from 'crypto'
 
 const registerSchema = z.object({
@@ -24,7 +25,21 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validatedData = registerSchema.parse(body)
     
-    // Check for multiple account attempts (only for non-Google signups)
+    // Check for multiple account attempts using DeviceTracker (server-side)
+    const deviceTracker = new DeviceTracker()
+    const deviceCheck = await deviceTracker.canCreateAccount(request)
+    
+    if (!deviceCheck.allowed) {
+      return NextResponse.json(
+        { 
+          error: deviceCheck.reason || 'Unable to create account at this time',
+          requireSupport: true 
+        },
+        { status: 403 }
+      )
+    }
+    
+    // Also check with AccountLimiter for additional client-side checks
     const accountLimiter = new AccountLimiter()
     const canCreate = await accountLimiter.canCreateAccount(validatedData.email)
     
@@ -97,6 +112,7 @@ export async function POST(request: NextRequest) {
     
     // Record account creation for anti-abuse system
     await accountLimiter.recordAccountCreation(user.email)
+    await deviceTracker.recordAccountCreation(request)
     
     // Send welcome email with verification link
     try {

@@ -16,6 +16,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from '@/hooks/use-toast'
+import { DeviceInfo } from '@/components/auth/device-info'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must have at least 2 characters'),
@@ -298,6 +299,8 @@ export default function RegisterPage() {
                 </svg>
                 Google
               </Button>
+              {/* Device Info Component */}
+              <DeviceInfo />
             </CardContent>
 
             <CardFooter className="flex justify-center">
