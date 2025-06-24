@@ -2,7 +2,6 @@ import { Queue, Worker, Job, QueueEvents } from 'bullmq'
 import Redis from 'ioredis'
 import { prisma } from '@/lib/prisma'
 import { getVideoProvider } from '@/lib/video-providers'
-import { sendVideoCompletedEmail, sendVideoFailedEmail } from '@/lib/email/email-service'
 
 // Lazy-loaded Redis connection
 let connection: Redis | null = null
@@ -150,20 +149,6 @@ export function getVideoWorker(): Worker<VideoGenerationJobData> {
               },
             })
             
-            // Send completion email
-            const user = await prisma.user.findUnique({
-              where: { id: userId },
-              select: { email: true, name: true },
-            })
-            
-            if (user) {
-              await sendVideoCompletedEmail({
-                email: user.email,
-                name: user.name || 'User',
-                videoUrl: status.url,
-                thumbnailUrl: status.thumbnailUrl,
-              })
-            }
             
             // Emit completion status
             try {
@@ -227,19 +212,6 @@ export function getVideoWorker(): Worker<VideoGenerationJobData> {
         },
       })
       
-      // Send failure email
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { email: true, name: true },
-      })
-      
-      if (user) {
-        await sendVideoFailedEmail({
-          email: user.email,
-          name: user.name || 'User',
-          reason: error instanceof Error ? error.message : 'Unknown error',
-        })
-      }
       
       throw error
     }

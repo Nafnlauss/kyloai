@@ -14,12 +14,10 @@ export async function middleware(request: NextRequest) {
       return rateLimitResponse
     }
     
-    // Apply CSRF protection
-    if (process.env.ENABLE_CSRF_PROTECTION === 'true') {
-      const csrfResponse = await csrfProtection(request)
-      if (csrfResponse) {
-        return csrfResponse
-      }
+    // Apply CSRF protection (sempre ativo para segurança)
+    const csrfResponse = await csrfProtection(request)
+    if (csrfResponse) {
+      return csrfResponse
     }
   }
 

@@ -38,24 +38,6 @@ export async function sendSubscriptionCancelledEmail(data: templates.Subscriptio
   })
 }
 
-export async function sendVideoCompletedEmail(data: templates.VideoCompletedData & { email: string }) {
-  const template = templates.videoCompletedTemplate(data)
-  return EmailSender.sendEmail({
-    to: data.email,
-    subject: template.subject,
-    html: template.html
-  })
-}
-
-export async function sendVideoFailedEmail(data: templates.VideoFailedData) {
-  const template = templates.videoFailedTemplate(data)
-  return EmailSender.sendEmail({
-    to: data.email,
-    subject: template.subject,
-    html: template.html
-  })
-}
-
 export async function sendPasswordResetEmail(email: string, token: string) {
   const template = templates.passwordResetTemplate({
     email,

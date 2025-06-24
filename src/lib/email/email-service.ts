@@ -29,14 +29,6 @@ const createMockEmailService = (): EmailService => {
       console.log('Subscription cancelled email would be sent:', data)
       return mockSendEmail({ to: data.email, subject: 'Subscription Cancelled', html: '' })
     },
-    sendVideoCompletedEmail: async (data: Parameters<EmailService['sendVideoCompletedEmail']>[0]) => {
-      console.log('Video completed email would be sent:', data)
-      return mockSendEmail({ to: data.email, subject: 'Video Ready', html: '' })
-    },
-    sendVideoFailedEmail: async (data: Parameters<EmailService['sendVideoFailedEmail']>[0]) => {
-      console.log('Video failed email would be sent:', data)
-      return mockSendEmail({ to: data.email, subject: 'Video Failed', html: '' })
-    },
     sendPasswordResetEmail: async (email: string, token: string) => {
       console.log('Password reset email would be sent:', { email, token })
       return mockSendEmail({ to: email, subject: 'Password Reset', html: '' })
@@ -98,16 +90,6 @@ export const sendSubscriptionRenewalEmail: EmailService['sendSubscriptionRenewal
 export const sendSubscriptionCancelledEmail: EmailService['sendSubscriptionCancelledEmail'] = async (...args) => {
   await ensureInitialized()
   return emailService.sendSubscriptionCancelledEmail(...args)
-}
-
-export const sendVideoCompletedEmail: EmailService['sendVideoCompletedEmail'] = async (...args) => {
-  await ensureInitialized()
-  return emailService.sendVideoCompletedEmail(...args)
-}
-
-export const sendVideoFailedEmail: EmailService['sendVideoFailedEmail'] = async (...args) => {
-  await ensureInitialized()
-  return emailService.sendVideoFailedEmail(...args)
 }
 
 export const sendPasswordResetEmail: EmailService['sendPasswordResetEmail'] = async (...args) => {

@@ -6,11 +6,15 @@
         "dev": "next dev",
         "dev:3001": "next dev -p 3001 -H 0.0.0.0",
         "dev:safe": "NODE_ENV=development next dev --experimental-app",
-        "build": "next build",
-        "build:prod": "NODE_ENV=production next build || echo 'Build completed with warnings'",
+        "build": "npm run security-check && next build",
+        "build:prod": "npm run security-check && NODE_ENV=production next build",
         "start": "next start",
         "start:prod": "NODE_ENV=production next start",
         "lint": "next lint",
+        "security-check": "node tests/security/security-check.js",
+        "test-oauth": "node tests/oauth/test-oauth.js",
+        "test-oauth-prod": "node tests/oauth/test-oauth.js kylo.video",
+        "deploy-check": "npm run security-check && npm run lint && npm run build",
         "postinstall": "prisma generate"
     },
     "dependencies": {

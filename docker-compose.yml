@@ -6,9 +6,9 @@ services:
     image: postgres:16-alpine
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: kyloai
+      POSTGRES_USER: ${POSTGRES_USER:-kylo_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_random_password_change_me}
+      POSTGRES_DB: ${POSTGRES_DB:-kyloai}
     ports:
       - "5432:5432"
     volumes:
@@ -30,10 +30,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/kyloai
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kylo_user}:${POSTGRES_PASSWORD:-secure_random_password_change_me}@postgres:5432/${POSTGRES_DB:-kyloai}
       REDIS_URL: redis://redis:6379
-      NEXTAUTH_URL: http://localhost:3000
-      NEXTAUTH_SECRET: your-dev-secret-change-in-production
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-your-dev-secret-change-in-production}
     depends_on:
       - postgres
       - redis

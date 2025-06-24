@@ -4,9 +4,20 @@ import { authOptions } from '@/lib/auth/auth-options'
 import { prisma } from '@/lib/prisma'
 import { getVideoProvider } from '@/lib/video-providers'
 import { z } from 'zod'
+import { sanitizePrompt } from '@/lib/utils/sanitize-enhanced'
 
 const generateVideoSchema = z.object({
-  prompt: z.string().min(10).max(2500),
+  prompt: z.string()
+    .min(10, 'Prompt must be at least 10 characters')
+    .max(1000, 'Prompt must be less than 1000 characters')
+    .refine(
+      (val) => {
+        // Verificar se não contém conteúdo malicioso
+        const sanitized = sanitizePrompt(val)
+        return sanitized.length > 0 && sanitized === val.trim()
+      },
+      { message: 'Prompt contains invalid content' }
+    ),
   provider: z.enum(['LUMA_V1', 'LUMA_V2', 'KLING_V1', 'KLING_V2']),
   aspectRatio: z.enum(['16:9', '9:16', '1:1']).default('16:9'),
   duration: z.number().min(1).max(30).default(5),
@@ -24,6 +35,15 @@ export async function POST(request: NextRequest) {
     // Parse and validate request
     const body = await request.json()
     const validatedData = generateVideoSchema.parse(body)
+
+    // Sanitizar prompt para segurança adicional
+    const sanitizedPrompt = sanitizePrompt(validatedData.prompt)
+    if (!sanitizedPrompt || sanitizedPrompt.length < 10) {
+      return NextResponse.json(
+        { error: 'Invalid prompt content after sanitization' },
+        { status: 400 }
+      )
+    }
 
     // Check user credits
     const user = await prisma.user.findUnique({

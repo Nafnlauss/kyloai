@@ -8,9 +8,28 @@ import { join } from 'path'
 import { randomUUID } from 'crypto'
 import sharp from 'sharp'
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB (reduzido para segurança)
 const ALLOWED_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const AVATAR_SIZE = 256 // Square avatar size
+
+// Magic bytes para validação de tipo de arquivo
+const MAGIC_BYTES = {
+  'image/jpeg': [0xFF, 0xD8, 0xFF],
+  'image/jpg': [0xFF, 0xD8, 0xFF],
+  'image/png': [0x89, 0x50, 0x4E, 0x47],
+  'image/webp': [0x52, 0x49, 0x46, 0x46]
+}
+
+// Função para validar magic bytes
+function validateFileType(buffer: Buffer, mimeType: string): boolean {
+  const magicBytes = MAGIC_BYTES[mimeType as keyof typeof MAGIC_BYTES]
+  if (!magicBytes) return false
+
+  for (let i = 0; i < magicBytes.length; i++) {
+    if (buffer[i] !== magicBytes[i]) return false
+  }
+  return true
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -42,7 +61,19 @@ export async function POST(request: NextRequest) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'File too large. Maximum size is 5MB' },
+        { error: 'File too large. Maximum size is 2MB' },
+        { status: 400 }
+      )
+    }
+
+    // Convert file to buffer for magic byte validation
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+
+    // Validate magic bytes to prevent file type spoofing
+    if (!validateFileType(buffer, file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file format. File content does not match declared type.' },
         { status: 400 }
       )
     }
@@ -53,9 +84,7 @@ export async function POST(request: NextRequest) {
       select: { image: true }
     })
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Buffer já foi criado acima para validação
 
     // Process image with sharp
     const processedImage = await sharp(buffer)

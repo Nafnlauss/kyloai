@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Autenticação - Kylo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #8B5CF6;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #8B5CF6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #7C3AED;
+        }
+        .response {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+        }
+        .success {
+            background: #efe;
+            color: #060;
+        }
+        .info {
+            background: #e0f0ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #eee;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .tab.active {
+            background: #8B5CF6;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Teste de Autenticação - Kylo</h1>
+
+    <div class="info">
+        <h3>⚠️ Instruções Importantes:</h3>
+        <ol>
+            <li>Certifique-se de que o servidor está rodando: <code>npm run dev</code></li>
+            <li>URL do servidor: <strong id="serverUrl">http://localhost:3000</strong></li>
+            <li>Para testar o Google OAuth, você precisa configurar o Google Console primeiro</li>
+        </ol>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('register')">Registro</div>
+        <div class="tab" onclick="showTab('login')">Login</div>
+        <div class="tab" onclick="showTab('google')">Google OAuth</div>
+    </div>
+
+    <!-- Registro -->
+    <div id="register" class="tab-content active">
+        <div class="container">
+            <h2>Teste de Registro</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Nome:</label>
+                    <input type="text" id="regName" value="Teste User" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="regEmail" value="teste@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="regPassword" value="Teste123!" required>
+                    <small>Mínimo 8 caracteres, maiúscula, minúscula, número e caractere especial</small>
+                </div>
+                <button type="submit">Registrar</button>
+            </form>
+            <div id="regResponse" class="response"></div>
+        </div>
+    </div>
+
+    <!-- Login -->
+    <div id="login" class="tab-content">
+        <div class="container">
+            <h2>Teste de Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="loginEmail" value="teste@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha:</label>
+                    <input type="password" id="loginPassword" value="Teste123!" required>
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            <div id="loginResponse" class="response"></div>
+        </div>
+    </div>
+
+    <!-- Google OAuth -->
+    <div id="google" class="tab-content">
+        <div class="container">
+            <h2>Teste Google OAuth</h2>
+            <p>Para corrigir o erro "invalid_client":</p>
+            <ol>
+                <li>Acesse: <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a></li>
+                <li>Vá em <strong>APIs & Services > Credentials</strong></li>
+                <li>Adicione estas origens JavaScript:
+                    <ul>
+                        <li>http://localhost:3000</li>
+                        <li>https://kylo.video</li>
+                    </ul>
+                </li>
+                <li>Adicione estes URIs de redirecionamento:
+                    <ul>
+                        <li>http://localhost:3000/api/auth/callback/google</li>
+                        <li>https://kylo.video/api/auth/callback/google</li>
+                    </ul>
+                </li>
+            </ol>
+            <button onclick="testGoogleOAuth()">Testar Login com Google</button>
+            <div id="googleResponse" class="response"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000';
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Register Form
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('regResponse');
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response';
+            responseDiv.textContent = 'Enviando...';
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: document.getElementById('regName').value,
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value,
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = 'Sucesso: ' + JSON.stringify(data, null, 2);
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = 'Erro: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = 'Erro de conexão: ' + error.message + '\n\nCertifique-se de que o servidor está rodando!';
+            }
+        });
+
+        // Login Form
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const responseDiv = document.getElementById('loginResponse');
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response';
+            responseDiv.textContent = 'Enviando...';
+
+            try {
+                // First, get CSRF token
+                const csrfResponse = await fetch(`${BASE_URL}/api/auth/csrf`);
+                const csrfData = await csrfResponse.json();
+                
+                const response = await fetch(`${BASE_URL}/api/auth/callback/credentials`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: document.getElementById('loginEmail').value,
+                        password: document.getElementById('loginPassword').value,
+                        csrfToken: csrfData.csrfToken,
+                        callbackUrl: `${BASE_URL}/dashboard`,
+                        json: true,
+                    }),
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.url) {
+                    responseDiv.className = 'response success';
+                    responseDiv.textContent = 'Login bem-sucedido! Redirecionando...';
+                    setTimeout(() => {
+                        window.location.href = data.url;
+                    }, 1000);
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.textContent = 'Erro: ' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = 'Erro de conexão: ' + error.message + '\n\nCertifique-se de que o servidor está rodando!';
+            }
+        });
+
+        // Google OAuth Test
+        async function testGoogleOAuth() {
+            const responseDiv = document.getElementById('googleResponse');
+            responseDiv.style.display = 'block';
+            responseDiv.className = 'response';
+            responseDiv.textContent = 'Obtendo CSRF token...';
+            
+            try {
+                // First get CSRF token
+                const csrfResponse = await fetch(`${BASE_URL}/api/auth/csrf`);
+                const csrfData = await csrfResponse.json();
+                
+                // Create form and submit
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `${BASE_URL}/api/auth/signin/google`;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfToken';
+                csrfInput.value = csrfData.csrfToken;
+                
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.textContent = 'Erro: ' + error.message;
+            }
+        }
+
+        // Check server status on load
+        window.onload = async () => {
+            try {
+                const response = await fetch(`${BASE_URL}/api/health`);
+                if (response.ok) {
+                    document.getElementById('serverUrl').style.color = 'green';
+                } else {
+                    document.getElementById('serverUrl').style.color = 'red';
+                    document.getElementById('serverUrl').textContent += ' (OFFLINE)';
+                }
+            } catch (error) {
+                document.getElementById('serverUrl').style.color = 'red';
+                document.getElementById('serverUrl').textContent += ' (OFFLINE)';
+            }
+        };
+    </script>
+</body>
+</html>

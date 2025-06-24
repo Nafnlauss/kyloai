@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Auth Flow</title>
+    <style>
+        body { 
+            font-family: sans-serif; 
+            padding: 20px; 
+            background: #0a0a0a; 
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: #A259FF;
+            color: white;
+        }
+        button:hover {
+            background: #9148e0;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1a1a1a;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Auth Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Check Session Status</h2>
+        <button onclick="checkSession()">Check Session</button>
+        <div id="session-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test User Dashboard API</h2>
+        <button onclick="testUserAPI()">Test API</button>
+        <div id="api-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Modal Flow</h2>
+        <button onclick="testModalFlow('Free')">Test as Free User</button>
+        <button onclick="testModalFlow('Lite')">Test as Paid User</button>
+        <button onclick="testModalFlow(null)">Test as Not Logged In</button>
+        <div id="modal-result" class="result"></div>
+    </div>
+
+    <script>
+        async function checkSession() {
+            const result = document.getElementById('session-result');
+            try {
+                // Check if NextAuth session exists
+                const sessionRes = await fetch('/api/auth/session');
+                const session = await sessionRes.json();
+                
+                result.textContent = `Session Status: ${session ? 'Logged In' : 'Not Logged In'}\n`;
+                if (session?.user) {
+                    result.textContent += `User: ${JSON.stringify(session.user, null, 2)}`;
+                }
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function testUserAPI() {
+            const result = document.getElementById('api-result');
+            try {
+                const res = await fetch('/api/user/dashboard');
+                const data = await res.json();
+                
+                result.textContent = `API Response:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        function testModalFlow(userPlan) {
+            const result = document.getElementById('modal-result');
+            
+            // Simulate the modal flow logic
+            if (!userPlan) {
+                result.textContent = 'Result: Show toast "Please login to purchase credits"';
+            } else if (userPlan === 'Free') {
+                result.textContent = 'Result: Show "Subscribe to a premium plan to purchase credits" modal';
+            } else {
+                result.textContent = 'Result: Redirect to /credits/packs';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -43,16 +43,60 @@ next-env.d.ts
 # vercel
 .vercel
 
-# test files and directories
-tests/
+# test files - NÃO ignorar a pasta tests/ pois contém documentação importante
+# tests/  # Comentado - esta pasta contém docs importantes
 test-*.js
 test-*.ts
 *.test.*
 *.spec.*
-**/test/**
-**/tests/**
 
 # temporary files
 *.tmp
 *.temp
-*.log 
+*.log
+dev.log
+server.log
+
+# Database files
+*.db
+*.db-journal
+prisma/dev.db
+prisma/dev.db-journal
+
+# Environment files - IMPORTANTE!
+.env
+.env.local
+.env.production
+.env.production.local
+.env.development.local
+
+# Security - NUNCA commitar
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Uploads (manter diretório, ignorar conteúdo)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# OS files
+Thumbs.db
+.DS_Store
+._*
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Backup files
+*.backup
+*.bak
+*.old
+
+# Build artifacts
+.turbo/
