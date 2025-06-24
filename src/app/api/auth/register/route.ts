@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/email/email-service'
-import { AccountLimiter } from '@/lib/security/account-limiter'
+import { AccountLimiter } from '@/lib/security/account-limiter-server'
 import { randomBytes } from 'crypto'
 
 const registerSchema = z.object({
@@ -13,7 +13,8 @@ const registerSchema = z.object({
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
 })
 
 export async function POST(request: NextRequest) {
@@ -73,6 +74,8 @@ export async function POST(request: NextRequest) {
         emailVerified: null, // Email not verified yet
         emailVerificationToken,
         emailVerificationExpires,
+        // Temporary: Remove bio field until database is synced
+        // bio: null,
       },
     })
     
