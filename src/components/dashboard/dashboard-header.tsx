@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Video, Home, Settings, LogOut } from 'lucide-react'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function DashboardHeader() {
   return (
@@ -44,7 +43,6 @@ export function DashboardHeader() {
         </div>
         
         <div className="flex items-center space-x-4">
-          <ThemeToggle />
           <Button variant="ghost" size="sm" asChild>
             <Link href="/settings">
               <Settings className="h-4 w-4" />

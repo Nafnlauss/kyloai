@@ -503,8 +503,8 @@ export default function SettingsPage() {
               <CardDescription>Customize your Kylo experience</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Theme */}
-              <div className="space-y-4">
+              {/* Theme - Removido temporariamente */}
+              {/* <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium flex items-center gap-2">
@@ -523,9 +523,10 @@ export default function SettingsPage() {
                       <SelectItem value="system">System</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
                 
                 {/* Language */}
+                <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium flex items-center gap-2">

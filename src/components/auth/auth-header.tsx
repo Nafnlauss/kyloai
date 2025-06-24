@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function AuthHeader() {
   return (
@@ -19,7 +18,6 @@ export function AuthHeader() {
           />
           <span className="font-bold text-xl">Kylo</span>
         </Link>
-        <ThemeToggle />
       </div>
     </div>
   )
