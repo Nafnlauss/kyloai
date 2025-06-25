@@ -1,4 +1,4 @@
-# Railway Dockerfile - Updated for Prisma compatibility
+# Railway Dockerfile - Updated for environment variables
 FROM node:20-alpine
 
 # Install dependencies for Prisma on Alpine Linux
@@ -13,7 +13,7 @@ COPY .npmrc ./
 # Copy prisma schema BEFORE npm install
 COPY prisma ./prisma/
 
-# Install dependencies (this will also run postinstall and generate prisma)
+# Install dependencies
 RUN npm install --legacy-peer-deps
 
 # Copy all files
@@ -23,13 +23,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-# Usar variáveis de ambiente seguras para build
-# Estas serão fornecidas em runtime via secrets
-ENV DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
-ENV NEXTAUTH_SECRET="placeholder-secret-will-be-overridden"
-ENV NEXT_PUBLIC_SUPABASE_URL="https://placeholder.supabase.co"
-ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="placeholder-key"
-
+# Build com placeholders - Railway vai substituir em runtime
 RUN npm run build || echo "Build completed with warnings"
 
 # Expose port
@@ -38,5 +32,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Start the application with Next.js
+# Start the application
 CMD ["node_modules/.bin/next", "start"]
