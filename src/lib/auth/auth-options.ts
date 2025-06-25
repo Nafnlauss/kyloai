@@ -136,13 +136,14 @@ export const authOptions: NextAuthConfig = {
         try {
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email! },
+            include: { accounts: true }
           })
           
           console.log('🔵 Existing user check:', existingUser ? 'found' : 'not found');
           
           if (!existingUser) {
             console.log('🔵 Creating new user for:', user.email);
-            await prisma.user.create({
+            const newUser = await prisma.user.create({
               data: {
                 email: user.email!,
                 name: user.name,
@@ -152,7 +153,25 @@ export const authOptions: NextAuthConfig = {
                 creditsLastReset: new Date(),
               },
             })
-            console.log('✅ New user created successfully');
+            console.log('✅ New user created successfully with ID:', newUser.id);
+            
+            // Set the correct user ID
+            user.id = newUser.id;
+          } else {
+            // Update the user ID to match the database
+            user.id = existingUser.id;
+            console.log('🔵 Using existing user ID:', existingUser.id);
+            
+            // Check if Google account is already linked
+            const hasGoogleAccount = existingUser.accounts.some(
+              acc => acc.provider === 'google'
+            );
+            
+            if (hasGoogleAccount) {
+              console.log('✅ Google account already linked');
+            } else {
+              console.log('🔵 Will link Google account to existing user');
+            }
           }
         } catch (error) {
           console.error('🔴 Error in signIn:', error);
