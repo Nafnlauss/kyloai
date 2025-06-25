@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Google OAuth - Kylo</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google OAuth Test - Kylo.video</h1>
+    
+    <div class="test-section">
+        <h2>1. Direct Sign In Test</h2>
+        <p>This will attempt to sign in with Google directly:</p>
+        <button onclick="testDirectSignIn()">Test Direct Sign In</button>
+        <div id="direct-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. NextAuth Providers Test</h2>
+        <p>Check if Google provider is configured:</p>
+        <button onclick="testProviders()">Test Providers</button>
+        <div id="providers-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. CSRF Token Test</h2>
+        <p>Get CSRF token required for sign in:</p>
+        <button onclick="testCSRF()">Test CSRF</button>
+        <div id="csrf-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Full OAuth Flow Test</h2>
+        <p>Complete OAuth flow with proper CSRF:</p>
+        <button onclick="testFullFlow()">Test Full OAuth Flow</button>
+        <div id="flow-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Check Current Session</h2>
+        <p>Check if you're already signed in:</p>
+        <button onclick="checkSession()">Check Session</button>
+        <div id="session-result"></div>
+    </div>
+    
+    <script>
+        const baseUrl = 'https://kylo.video';
+        
+        async function testDirectSignIn() {
+            const result = document.getElementById('direct-result');
+            result.innerHTML = '<p class="info">Testing...</p>';
+            
+            try {
+                // This will redirect to Google
+                window.location.href = `${baseUrl}/api/auth/signin/google`;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testProviders() {
+            const result = document.getElementById('providers-result');
+            result.innerHTML = '<p class="info">Fetching providers...</p>';
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/auth/providers`);
+                const providers = await response.json();
+                
+                result.innerHTML = `
+                    <p class="success">Providers loaded successfully!</p>
+                    <pre>${JSON.stringify(providers, null, 2)}</pre>
+                `;
+                
+                if (providers.google) {
+                    result.innerHTML += `<p class="success">✓ Google provider is configured</p>`;
+                } else {
+                    result.innerHTML += `<p class="error">✗ Google provider not found</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testCSRF() {
+            const result = document.getElementById('csrf-result');
+            result.innerHTML = '<p class="info">Fetching CSRF token...</p>';
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/auth/csrf`);
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <p class="success">CSRF token obtained!</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                window.csrfToken = data.csrfToken;
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testFullFlow() {
+            const result = document.getElementById('flow-result');
+            result.innerHTML = '<p class="info">Starting full OAuth flow...</p>';
+            
+            try {
+                // First get CSRF token
+                const csrfResponse = await fetch(`${baseUrl}/api/auth/csrf`);
+                const csrfData = await csrfResponse.json();
+                
+                result.innerHTML += '<p class="success">✓ CSRF token obtained</p>';
+                
+                // Create form and submit
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `${baseUrl}/api/auth/signin/google`;
+                
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfToken';
+                csrfInput.value = csrfData.csrfToken;
+                form.appendChild(csrfInput);
+                
+                const callbackInput = document.createElement('input');
+                callbackInput.type = 'hidden';
+                callbackInput.name = 'callbackUrl';
+                callbackInput.value = `${baseUrl}/studio/video`;
+                form.appendChild(callbackInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+                
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function checkSession() {
+            const result = document.getElementById('session-result');
+            result.innerHTML = '<p class="info">Checking session...</p>';
+            
+            try {
+                const response = await fetch(`${baseUrl}/api/auth/session`);
+                const session = await response.json();
+                
+                result.innerHTML = `
+                    <p class="success">Session check complete!</p>
+                    <pre>${JSON.stringify(session, null, 2)}</pre>
+                `;
+                
+                if (session && session.user) {
+                    result.innerHTML += `<p class="success">✓ You are signed in as: ${session.user.email}</p>`;
+                } else {
+                    result.innerHTML += `<p class="info">✗ Not signed in</p>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
