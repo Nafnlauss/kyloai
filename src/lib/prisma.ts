@@ -15,8 +15,16 @@ if (process.env.DATABASE_URL) {
   const cleaned = cleanDatabaseUrl(process.env.DATABASE_URL);
   if (cleaned !== process.env.DATABASE_URL) {
     console.log('🔧 DATABASE_URL cleaned - removed invalid characters');
+    console.log('Original length:', process.env.DATABASE_URL.length);
+    console.log('Cleaned length:', cleaned.length);
     process.env.DATABASE_URL = cleaned;
   }
+}
+
+// Fallback: Se DATABASE_URL estiver com problemas, use um valor hardcoded temporariamente
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL.length < 100) {
+  console.log('⚠️ DATABASE_URL issue detected, using fallback');
+  process.env.DATABASE_URL = 'postgresql://postgres.snfxczgjpnydysccigps:Lk6289asqwa@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true';
 }
 
 if (process.env.DIRECT_URL) {
