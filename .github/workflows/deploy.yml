@@ -1,0 +1,155 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # 1. Verificação de Segurança
+  security-check:
+    name: 🔐 Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Run Security Check
+        run: |
+          cd ai-video-hub
+          node tests/security/security-check.js
+
+  # 2. Lint e Type Check
+  code-quality:
+    name: 📝 Code Quality
+    runs-on: ubuntu-latest
+    needs: security-check
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+          
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+            
+      - name: Install dependencies
+        run: |
+          cd ai-video-hub
+          pnpm install --frozen-lockfile
+          
+      - name: Run ESLint
+        run: |
+          cd ai-video-hub
+          pnpm lint
+          
+      - name: Generate Prisma Client
+        run: |
+          cd ai-video-hub
+          pnpm prisma generate
+
+  # 3. Build Test
+  build-test:
+    name: 🏗️ Build Test
+    runs-on: ubuntu-latest
+    needs: code-quality
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: |
+          cd ai-video-hub
+          pnpm install --frozen-lockfile
+          
+      - name: Create .env for build
+        run: |
+          cd ai-video-hub
+          cp .env.example .env.local
+          # Adiciona valores mínimos para o build passar
+          echo "NEXTAUTH_SECRET=build-test-secret" >> .env.local
+          echo "DATABASE_URL=postgresql://test:test@localhost:5432/test" >> .env.local
+          
+      - name: Build application
+        run: |
+          cd ai-video-hub
+          pnpm build
+        env:
+          SKIP_ENV_VALIDATION: true
+
+  # 4. Deploy para Vercel (apenas em push para main)
+  deploy-vercel:
+    name: 🚀 Deploy to Vercel
+    runs-on: ubuntu-latest
+    needs: [security-check, code-quality, build-test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          working-directory: ./ai-video-hub
+
+  # 5. Testes Pós-Deploy
+  post-deploy-tests:
+    name: 🧪 Post-Deploy Tests
+    runs-on: ubuntu-latest
+    needs: deploy-vercel
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Wait for deployment
+        run: sleep 60
+        
+      - name: Test OAuth Configuration
+        run: |
+          cd ai-video-hub
+          node tests/oauth/test-oauth.js ${{ secrets.PRODUCTION_URL }}
+        continue-on-error: true
+        
+      - name: Health Check
+        run: |
+          curl -f ${{ secrets.PRODUCTION_URL }}/api/health || exit 1

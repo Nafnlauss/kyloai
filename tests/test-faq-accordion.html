@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ Accordion Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0a0a0a; color: white; }
+        .faq-item { 
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            transition: all 0.2s;
+        }
+        .faq-item:hover { 
+            border-color: rgba(255,255,255,0.2);
+        }
+        .faq-item.open {
+            border-color: rgba(147, 51, 234, 0.3);
+            background: rgba(147, 51, 234, 0.05);
+        }
+        .faq-button {
+            width: 100%;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-align: left;
+            cursor: pointer;
+        }
+        .faq-question {
+            font-size: 16px;
+            font-weight: 500;
+            padding-right: 32px;
+        }
+        .chevron-wrapper {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.05);
+            transition: all 0.2s;
+        }
+        .faq-item.open .chevron-wrapper {
+            background: rgba(147, 51, 234, 0.1);
+        }
+        .chevron {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s;
+            color: #666;
+        }
+        .faq-item.open .chevron {
+            transform: rotate(180deg);
+            color: #9333ea;
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out, opacity 0.2s;
+            opacity: 0;
+        }
+        .faq-item.open .faq-answer {
+            max-height: 500px;
+            opacity: 1;
+        }
+        .faq-answer-content {
+            padding: 0 24px 24px 24px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #999;
+        }
+    </style>
+</head>
+<body class="py-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+            <p class="text-xl text-gray-400">Find quick answers to common questions</p>
+        </div>
+
+        <div id="faq-container">
+            <!-- FAQ items will be inserted here -->
+        </div>
+    </div>
+
+    <script>
+        const faqData = [
+            {
+                question: "How do I purchase extra credits?",
+                answer: "You can purchase additional credits directly from your dashboard. Navigate to the 'Billing' section and choose from our credit packages. Credits are added instantly to your account after payment confirmation."
+            },
+            {
+                question: "Do my credits expire?",
+                answer: "For monthly plans, credits do not accumulate and expire at the end of each billing cycle. However, for annual plans, credits are cumulative and never expire as long as your subscription is active. Purchased credit packages also never expire."
+            },
+            {
+                question: "What video resolutions are supported?",
+                answer: "We support multiple resolutions depending on your plan and the AI model used. Standard quality offers 720p, while premium plans can generate videos in Full HD (1080p) and 4K resolution. The Kling V2.1 model supports up to cinematic 4K quality."
+            }
+        ];
+
+        const container = document.getElementById('faq-container');
+
+        faqData.forEach((item, index) => {
+            const faqItem = document.createElement('div');
+            faqItem.className = 'faq-item';
+            faqItem.innerHTML = `
+                <button class="faq-button" aria-expanded="false" aria-controls="faq-answer-${index}">
+                    <h3 class="faq-question">${item.question}</h3>
+                    <div class="chevron-wrapper">
+                        <svg class="chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </div>
+                </button>
+                <div id="faq-answer-${index}" class="faq-answer">
+                    <div class="faq-answer-content">
+                        ${item.answer}
+                    </div>
+                </div>
+            `;
+
+            const button = faqItem.querySelector('.faq-button');
+            button.addEventListener('click', () => {
+                const isOpen = faqItem.classList.contains('open');
+                
+                // Close all other items
+                document.querySelectorAll('.faq-item').forEach(item => {
+                    if (item !== faqItem) {
+                        item.classList.remove('open');
+                        item.querySelector('.faq-button').setAttribute('aria-expanded', 'false');
+                    }
+                });
+
+                // Toggle current item
+                if (isOpen) {
+                    faqItem.classList.remove('open');
+                    button.setAttribute('aria-expanded', 'false');
+                } else {
+                    faqItem.classList.add('open');
+                    button.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            container.appendChild(faqItem);
+        });
+    </script>
+</body>
+</html>

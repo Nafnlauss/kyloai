@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Menu Flow Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: white;
+            font-family: sans-serif;
+        }
+        .success {
+            background: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .menu-preview {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 12px;
+            padding: 16px;
+            width: 256px;
+            margin: 20px 0;
+        }
+        .menu-header {
+            margin-bottom: 16px;
+        }
+        .menu-button {
+            width: 100%;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #a1a1aa;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .menu-button:hover {
+            background: #27272a;
+            color: white;
+        }
+        .menu-button.primary {
+            background: #A259FF;
+            color: white;
+        }
+        .menu-button.primary:hover {
+            background: #9148e0;
+        }
+        .menu-button.outline {
+            border: 1px solid #A259FF;
+            color: white;
+        }
+        .menu-button.outline:hover {
+            background: rgba(162, 89, 255, 0.1);
+        }
+        .separator {
+            height: 1px;
+            background: #3f3f46;
+            margin: 8px 0;
+        }
+        .code {
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="success">
+        <h2>✅ Menu do Avatar Atualizado com Sucesso!</h2>
+        <p>O menu agora contém 5 opções organizadas:</p>
+    </div>
+
+    <h3>Preview do Menu:</h3>
+    <div class="menu-preview">
+        <div class="menu-header">
+            <p style="margin: 0; font-size: 14px; font-weight: 500;">user@example.com</p>
+            <p style="margin: 0; font-size: 12px; color: #71717a;">Free plan</p>
+        </div>
+        
+        <div>
+            <button class="menu-button primary">Upgrade plan</button>
+            <button class="menu-button outline">Buy credits</button>
+            <div class="separator"></div>
+            <button class="menu-button">Settings</button>
+            <button class="menu-button">Help & Support</button>
+            <button class="menu-button">Sign out</button>
+        </div>
+    </div>
+
+    <h3>Fluxo de Navegação:</h3>
+    <ul>
+        <li><strong>Upgrade plan</strong> → Redireciona para <code>/membership</code></li>
+        <li><strong>Buy credits</strong> → Abre modal de créditos (com lógica condicional)</li>
+        <li><strong>Settings</strong> → Redireciona para <code>/settings</code> (página completa com 5 abas)</li>
+        <li><strong>Help & Support</strong> → Redireciona para <code>/contact</code> (formulário + FAQ)</li>
+        <li><strong>Sign out</strong> → Faz logout do usuário</li>
+    </ul>
+
+    <h3>Páginas Disponíveis:</h3>
+    <div class="code">
+/settings    - Configurações do perfil (5 abas)
+/contact     - Formulário de contato + FAQ
+/membership  - Planos de assinatura
+/credits/packs - Pacotes de créditos (requer plano pago)
+    </div>
+
+    <h3>Comportamento do "Buy credits":</h3>
+    <ul>
+        <li>Usuário não logado → Toast "Please login to purchase credits"</li>
+        <li>Usuário Free → Modal "Subscribe to a premium plan to purchase credits"</li>
+        <li>Usuário Pago → Redireciona para <code>/credits/packs</code></li>
+    </ul>
+</body>
+</html>

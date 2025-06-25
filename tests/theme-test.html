@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme System Test</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    
+    .light {
+      background-color: white;
+      color: black;
+    }
+    
+    .dark {
+      background-color: #0a0a0a;
+      color: white;
+    }
+    
+    .test-section {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      border: 2px solid currentColor;
+      border-radius: 8px;
+    }
+    
+    button {
+      padding: 0.5rem 1rem;
+      margin: 0.25rem;
+      border: 1px solid currentColor;
+      background: transparent;
+      color: currentColor;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    button:hover {
+      background: currentColor;
+      color: var(--bg-color);
+    }
+    
+    .status {
+      margin: 1rem 0;
+      padding: 1rem;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kylo Theme System Test</h1>
+  
+  <div class="test-section">
+    <h2>Theme Controls</h2>
+    <button onclick="setTheme('light')">Light Theme</button>
+    <button onclick="setTheme('dark')">Dark Theme</button>
+    <button onclick="setTheme('system')">System Theme</button>
+  </div>
+  
+  <div class="test-section">
+    <h2>Current Status</h2>
+    <div class="status">
+      <p>Current Theme: <span id="current-theme">loading...</span></p>
+      <p>System Preference: <span id="system-pref">loading...</span></p>
+      <p>Effective Theme: <span id="effective-theme">loading...</span></p>
+      <p>LocalStorage Value: <span id="storage-value">loading...</span></p>
+    </div>
+  </div>
+  
+  <div class="test-section">
+    <h2>Theme Detection</h2>
+    <p>This test verifies that:</p>
+    <ul>
+      <li>Theme changes are applied correctly</li>
+      <li>Theme preference is saved to localStorage</li>
+      <li>System theme preference is detected</li>
+      <li>Theme persists after page reload</li>
+    </ul>
+  </div>
+  
+  <script>
+    const STORAGE_KEY = 'kylo-theme';
+    
+    function updateStatus() {
+      const stored = localStorage.getItem(STORAGE_KEY) || 'not set';
+      const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const htmlClass = document.documentElement.className;
+      
+      document.getElementById('current-theme').textContent = stored;
+      document.getElementById('system-pref').textContent = systemDark ? 'dark' : 'light';
+      document.getElementById('effective-theme').textContent = htmlClass || 'none';
+      document.getElementById('storage-value').textContent = stored;
+    }
+    
+    function setTheme(theme) {
+      document.documentElement.className = '';
+      
+      if (theme === 'system') {
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.classList.add(systemTheme);
+      } else {
+        document.documentElement.classList.add(theme);
+      }
+      
+      localStorage.setItem(STORAGE_KEY, theme);
+      updateStatus();
+    }
+    
+    // Initialize
+    const savedTheme = localStorage.getItem(STORAGE_KEY) || 'system';
+    setTheme(savedTheme);
+    
+    // Listen for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (localStorage.getItem(STORAGE_KEY) === 'system') {
+        setTheme('system');
+      }
+      updateStatus();
+    });
+    
+    // Update status on load
+    updateStatus();
+  </script>
+</body>
+</html>

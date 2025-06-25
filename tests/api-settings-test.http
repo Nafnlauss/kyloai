@@ -1,0 +1,129 @@
+### Test User Settings API Routes
+### Note: Replace {session_token} with actual session token from browser cookies
+
+### 1. Get User Profile
+GET http://localhost:3000/api/user/profile
+Cookie: next-auth.session-token={session_token}
+
+### 2. Update User Profile
+PATCH http://localhost:3000/api/user/profile
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "name": "John Doe",
+  "bio": "Software developer passionate about AI and video creation",
+  "website": "https://example.com",
+  "location": "São Paulo, Brazil"
+}
+
+### 3. Get User Preferences
+GET http://localhost:3000/api/user/preferences
+Cookie: next-auth.session-token={session_token}
+
+### 4. Update User Preferences
+PATCH http://localhost:3000/api/user/preferences
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "theme": "dark",
+  "language": "pt-BR",
+  "videoQuality": "1080p",
+  "autoPlay": false
+}
+
+### 5. Get Notification Settings
+GET http://localhost:3000/api/user/notifications
+Cookie: next-auth.session-token={session_token}
+
+### 6. Update Notification Settings
+PATCH http://localhost:3000/api/user/notifications
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "emailNotifications": true,
+  "pushNotifications": false,
+  "notifyOnVideoComplete": true,
+  "notifyOnCreditLow": true,
+  "notifyOnNewFeatures": false,
+  "notifyOnPromotions": false
+}
+
+### 7. Get 2FA Status
+GET http://localhost:3000/api/user/security/2fa
+Cookie: next-auth.session-token={session_token}
+
+### 8. Generate 2FA Setup
+POST http://localhost:3000/api/user/security/2fa
+Cookie: next-auth.session-token={session_token}
+
+### 9. Enable 2FA
+PUT http://localhost:3000/api/user/security/2fa
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "password": "YourPassword123!",
+  "token": "123456",
+  "secret": "BASE32_SECRET_FROM_SETUP"
+}
+
+### 10. Disable 2FA
+DELETE http://localhost:3000/api/user/security/2fa
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "password": "YourPassword123!"
+}
+
+### 11. Change Password
+POST http://localhost:3000/api/user/security/password
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "currentPassword": "OldPassword123!",
+  "newPassword": "NewPassword123!",
+  "confirmPassword": "NewPassword123!"
+}
+
+### 12. Get Active Sessions
+GET http://localhost:3000/api/user/security/sessions
+Cookie: next-auth.session-token={session_token}
+
+### 13. Revoke Specific Session
+DELETE http://localhost:3000/api/user/security/sessions
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "sessionId": "session_id_to_revoke"
+}
+
+### 14. Revoke All Other Sessions
+POST http://localhost:3000/api/user/security/sessions
+Content-Type: application/json
+Cookie: next-auth.session-token={session_token}
+
+{
+  "keepCurrent": true
+}
+
+### 15. Upload Avatar
+POST http://localhost:3000/api/user/avatar
+Cookie: next-auth.session-token={session_token}
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="avatar"; filename="profile.jpg"
+Content-Type: image/jpeg
+
+< ./test-avatar.jpg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 16. Delete Avatar
+DELETE http://localhost:3000/api/user/avatar
+Cookie: next-auth.session-token={session_token}

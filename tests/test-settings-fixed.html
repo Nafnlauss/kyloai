@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Settings Page Fixed</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0a0a;
+            color: white;
+            font-family: sans-serif;
+        }
+        .success {
+            background: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .code {
+            background: #000;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .link {
+            color: #A259FF;
+            text-decoration: none;
+        }
+        .link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="success">
+        <h2>✅ Settings Page Fixed!</h2>
+        <p>Os seguintes erros foram corrigidos:</p>
+        <ul>
+            <li>✅ Badge import adicionado</li>
+            <li>✅ Separator import adicionado</li>
+            <li>✅ Removido import duplicado do Image</li>
+            <li>✅ Corrigido auth import no layout</li>
+        </ul>
+    </div>
+
+    <div class="info">
+        <h3>Acesse a página de settings:</h3>
+        <p><a href="http://localhost:3001/settings" class="link" target="_blank">http://localhost:3001/settings</a></p>
+        
+        <h3>Ou através do menu:</h3>
+        <ol>
+            <li>Vá para <a href="http://localhost:3001/studio/video" class="link" target="_blank">Studio</a></li>
+            <li>Clique no avatar (bolinha inferior)</li>
+            <li>Clique em "Settings"</li>
+        </ol>
+    </div>
+
+    <div class="info">
+        <h3>Funcionalidades da página Settings:</h3>
+        <ul>
+            <li><strong>Profile:</strong> Avatar, nome, bio, website, localização</li>
+            <li><strong>Preferences:</strong> Tema, idioma, qualidade de vídeo, formato de download</li>
+            <li><strong>Security:</strong> Senha, 2FA, sessões ativas</li>
+            <li><strong>Notifications:</strong> Emails de atividade, conta e marketing</li>
+            <li><strong>Billing:</strong> Plano atual, métodos de pagamento, histórico</li>
+        </ul>
+    </div>
+
+    <div class="code">
+// Correções aplicadas:
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { auth } from '@/auth'; // NextAuth v5 beta
+    </div>
+</body>
+</html>

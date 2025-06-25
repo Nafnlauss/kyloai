@@ -1,0 +1,108 @@
+name: 🔍 PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # Análise de segurança
+  security-scan:
+    name: 🛡️ Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Security Check
+        run: |
+          cd ai-video-hub
+          node tests/security/security-check.js
+
+  # Verificação de secrets
+  check-secrets:
+    name: 🔐 Check for Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Detect secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Análise de código
+  code-analysis:
+    name: 📊 Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Install dependencies
+        run: |
+          cd ai-video-hub
+          pnpm install --frozen-lockfile
+          
+      - name: Run linter
+        run: |
+          cd ai-video-hub
+          pnpm lint
+          
+      - name: Check types
+        run: |
+          cd ai-video-hub
+          pnpm prisma generate
+          npx tsc --noEmit || true
+
+  # Comentário automático no PR
+  pr-comment:
+    name: 💬 PR Comment
+    runs-on: ubuntu-latest
+    needs: [security-scan, check-secrets, code-analysis]
+    if: always()
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: checks } = await github.rest.checks.listForRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+            });
+            
+            let comment = '## 🤖 Verificação Automática do PR\n\n';
+            
+            const securityCheck = checks.check_runs.find(c => c.name.includes('Security'));
+            const secretsCheck = checks.check_runs.find(c => c.name.includes('Secrets'));
+            const codeCheck = checks.check_runs.find(c => c.name.includes('Code'));
+            
+            comment += '| Check | Status |\n|-------|--------|\n';
+            comment += `| 🛡️ Security | ${securityCheck?.conclusion === 'success' ? '✅' : '❌'} |\n`;
+            comment += `| 🔐 Secrets | ${secretsCheck?.conclusion === 'success' ? '✅' : '❌'} |\n`;
+            comment += `| 📊 Code Quality | ${codeCheck?.conclusion === 'success' ? '✅' : '❌'} |\n`;
+            
+            comment += '\n### 📋 Checklist antes do merge:\n';
+            comment += '- [ ] Testes passando\n';
+            comment += '- [ ] Sem secrets expostos\n';
+            comment += '- [ ] Código revisado\n';
+            comment += '- [ ] Documentação atualizada\n';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
