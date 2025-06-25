@@ -11,6 +11,9 @@ const loginSchema = z.object({
   password: z.string().min(8),
 })
 
+// Debug: Log quando auth-options é carregado
+console.log('🔧 Loading auth-options...');
+
 export const authOptions: NextAuthConfig = {
   adapter: PrismaAdapter(prisma) as any,
   session: {
