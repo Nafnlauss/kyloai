@@ -1,5 +1,13 @@
 const { securityHeaders } = require('./src/lib/security/headers')
 
+// Debug: Log environment variables during build
+console.log('=== Railway Build Environment Check ===');
+console.log('NEXTAUTH_URL:', process.env.NEXTAUTH_URL || 'NOT SET');
+console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
+console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET ? 'SET' : 'NOT SET');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('=====================================');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,

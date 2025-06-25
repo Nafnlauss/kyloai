@@ -41,8 +41,6 @@ ENV HOSTNAME="0.0.0.0"
 # Important: Railway will inject environment variables at runtime
 # No need to set them during build
 
-# Copy start script
-COPY start.sh ./
-
 # Start the application with Next.js
-CMD ["./start.sh"]
+# Railway injects env vars at runtime
+CMD ["node_modules/.bin/next", "start"]
