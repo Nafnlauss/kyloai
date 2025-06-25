@@ -123,22 +123,37 @@ export const authOptions: NextAuthConfig = {
       return session
     },
     async signIn({ user, account, profile }) {
+      console.log('🔵 SignIn attempt:', { 
+        provider: account?.provider,
+        email: user.email,
+        userId: user.id
+      });
+      
       if (account?.provider === 'google') {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email! },
-        })
-        
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              email: user.email!,
-              name: user.name,
-              image: user.image,
-              emailVerified: new Date(),
-              credits: 300, // Créditos iniciais para novos usuários Google
-              creditsLastReset: new Date(),
-            },
+        try {
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
           })
+          
+          console.log('🔵 Existing user check:', existingUser ? 'found' : 'not found');
+          
+          if (!existingUser) {
+            console.log('🔵 Creating new user for:', user.email);
+            await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name,
+                image: user.image,
+                emailVerified: new Date(),
+                credits: 300, // Créditos iniciais para novos usuários Google
+                creditsLastReset: new Date(),
+              },
+            })
+            console.log('✅ New user created successfully');
+          }
+        } catch (error) {
+          console.error('🔴 Error in signIn:', error);
+          throw error;
         }
       }
       
