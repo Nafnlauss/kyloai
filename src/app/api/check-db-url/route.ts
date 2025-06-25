@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
+  // Import para garantir que a config seja carregada
+  await import('@/lib/database-config');
+  
   const dbUrl = process.env.DATABASE_URL || 'NOT SET';
   const directUrl = process.env.DIRECT_URL || 'NOT SET';
   
