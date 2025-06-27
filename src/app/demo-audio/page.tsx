@@ -1,29 +1,24 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Mic, Music, User, Send, Volume2, Languages, Zap, Plus } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
+import { Volume2, Send, Mic, FileAudio, Languages, Zap } from 'lucide-react'
 import { ModelSelect } from '@/components/ui/model-select'
 import { InfoBox } from '@/components/ui/info-box'
-import { ALL_MODELS, AUDIO_CAPABILITIES, getModelsByMediaType, getModelById, calculateTotalCost } from '@/config/all-models-config'
+import { ALL_MODELS, getModelsByMediaType, getModelById, calculateTotalCost, getAudioCapabilities } from '@/config/all-models-config'
 
-
-export default function AudioStudioPage() {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+export default function DemoAudioPage() {
   // Estados dos dropdowns
   const [selectedProvider, setSelectedProvider] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
-  const [voice, setVoice] = useState('')
-  const [language, setLanguage] = useState('')
-  const [format, setFormat] = useState('')
+  const [selectedVoice, setSelectedVoice] = useState('')
+  const [selectedLanguage, setSelectedLanguage] = useState('en')
+  const [selectedFormat, setSelectedFormat] = useState('mp3')
   
-  // Estado do texto
+  // Estados adicionais
   const [text, setText] = useState('')
-  
+  const [hasVoiceClone, setHasVoiceClone] = useState(false)
+  const [audioFile, setAudioFile] = useState<File | null>(null)
+
   // Obter modelos de áudio disponíveis
   const audioModels = getModelsByMediaType('audio')
   
@@ -40,30 +35,16 @@ export default function AudioStudioPage() {
       return tierOrder[a.costTier] - tierOrder[b.costTier]
     })
 
-  // Obter configuração do modelo selecionado
+  // Obter capacidades do modelo selecionado
   const selectedModelConfig = getModelById(selectedModel)
-  const modelCapabilities = AUDIO_CAPABILITIES[selectedModel] || {}
+  const modelCapabilities = selectedModelConfig?.capabilities || {}
 
-  // Opções dinâmicas baseadas no modelo selecionado
-  const voiceOptions = (modelCapabilities.voices || []).map(v => ({
-    label: v.label,
-    value: v.value
-  }))
-  
-  const languageOptions = (modelCapabilities.languages || []).map(lang => ({
-    label: lang.label,
-    value: lang.value
-  }))
-  
-  const formatOptions = [
-    { value: 'mp3', label: 'MP3' },
-    { value: 'wav', label: 'WAV' },
-    { value: 'ogg', label: 'OGG' },
-    { value: 'flac', label: 'FLAC' },
-    { value: 'aac', label: 'AAC' },
-    { value: 'm4a', label: 'M4A' }
-  ]
-  
+  // Obter capabilities dinâmicas baseadas no modelo específico
+  const audioCapabilities = getAudioCapabilities(selectedModel)
+  const voices = audioCapabilities.voices
+  const languages = audioCapabilities.languages
+  const formats = audioCapabilities.formats
+
   // Reset em cascata
   useEffect(() => {
     if (selectedProvider) {
@@ -75,92 +56,65 @@ export default function AudioStudioPage() {
   }, [selectedProvider])
 
   useEffect(() => {
-    if (selectedModel && modelCapabilities) {
-      // Reset voice if not valid
-      if (!voice && modelCapabilities.voices?.length) {
-        setVoice(modelCapabilities.voices[0].value)
+    if (selectedModel && selectedModelConfig) {
+      // Reset voice quando trocar de modelo/provider
+      if (voices.length > 0) {
+        setSelectedVoice(voices[0].value)
       }
       
-      // Reset language if not valid
-      if (!language && modelCapabilities.languages?.length) {
-        setLanguage(modelCapabilities.languages[0].value)
+      // Reset language
+      if (languages.length > 0) {
+        setSelectedLanguage(languages[0].value)
       }
       
       // Reset format
-      if (!format) {
-        setFormat('mp3')
+      if (formats.length > 0) {
+        setSelectedFormat(formats[0].value)
+      }
+      
+      // Desabilitar voice clone se não suportado
+      if (!modelCapabilities.audioRef) {
+        setHasVoiceClone(false)
       }
     }
-  }, [selectedModel])
-  
-  // Verificar limite de caracteres
-  const maxChars = 5000
-  const charCount = text.length
-  const isOverLimit = charCount > maxChars
-  
+  }, [selectedModel, selectedProvider])
+
   // Calcular custos
+  const charCount = text.length
   const totalCost = selectedModel ? calculateTotalCost(selectedModel, {
     characters: charCount
   }) : 0
 
-  const handleGenerate = async () => {
-    if (!text.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter text to convert',
-        variant: 'destructive',
-      })
-      return
+  // Badge de custo
+  const getCostBadge = (tier: 'low' | 'mid' | 'high') => {
+    const badges = {
+      low: { bg: 'bg-green-500/20', text: 'text-green-600', label: 'Low' },
+      mid: { bg: 'bg-yellow-500/20', text: 'text-yellow-600', label: 'Mid' },
+      high: { bg: 'bg-red-500/20', text: 'text-red-600', label: 'High' }
     }
-    
-    if (isOverLimit) {
-      toast({
-        title: 'Error',
-        description: `Text exceeds the limit of ${maxChars} characters`,
-        variant: 'destructive',
-      })
-      return
-    }
+    return badges[tier]
+  }
 
-    setIsSubmitting(true)
+  const handleGenerate = () => {
+    if (!selectedModel || !text.trim()) return
 
-    try {
-      const response = await fetch('/api/audio/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text,
-          model: selectedModel,
-          provider: selectedProvider,
-          voice,
-          language,
-          format
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate audio')
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Audio generation started!',
-      })
-
-      router.push(`/studio/audio/${data.audioId}`)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to generate audio',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+    alert(`
+      🎵 Configuração de Áudio 301.demo:
+      
+      Provider: ${selectedProvider}
+      Modelo: ${selectedModelConfig?.label}
+      Texto: ${text.substring(0, 100)}...
+      Caracteres: ${charCount}
+      Voz: ${selectedVoice}
+      Idioma: ${selectedLanguage}
+      Formato: ${selectedFormat}
+      
+      Opcionais:
+      - Voice Clone: ${hasVoiceClone ? 'Sim' : 'Não'}
+      ${audioFile ? `- Arquivo de áudio: ${audioFile.name}` : ''}
+      
+      TOTAL: ${totalCost} créditos
+    `)
   }
 
   const handleTextKeyDown = (e: React.KeyboardEvent) => {
@@ -181,10 +135,10 @@ export default function AudioStudioPage() {
             </div>
           </div>
           <h2 className="text-2xl font-light mb-2">
-            Create AI Audio with <span className="font-medium">Advanced Models</span>
+            Create AI Audio with <span className="font-medium">Text-to-Speech</span>
           </h2>
           <p className="text-sm text-zinc-400">
-            Convert your text to natural-sounding speech with AI voices
+            Transform your text into natural-sounding speech with advanced AI voices
           </p>
         </div>
 
@@ -222,15 +176,15 @@ export default function AudioStudioPage() {
           <div className="relative">
             <label className="text-xs text-zinc-500 mb-1 block">3. Voice</label>
             <select
-              value={voice}
-              onChange={(e) => setVoice(e.target.value)}
-              disabled={!selectedModel || voiceOptions.length === 0}
+              value={selectedVoice}
+              onChange={(e) => setSelectedVoice(e.target.value)}
+              disabled={!selectedModel}
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="">Select Voice</option>
-              {voiceOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {voices.map(voice => (
+                <option key={voice.value} value={voice.value}>
+                  {voice.label}
                 </option>
               ))}
             </select>
@@ -240,15 +194,14 @@ export default function AudioStudioPage() {
           <div className="relative">
             <label className="text-xs text-zinc-500 mb-1 block">4. Language</label>
             <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              disabled={!selectedModel || languageOptions.length === 0}
+              value={selectedLanguage}
+              onChange={(e) => setSelectedLanguage(e.target.value)}
+              disabled={!selectedModel}
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select Language</option>
-              {languageOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {languages.map(lang => (
+                <option key={lang.value} value={lang.value}>
+                  {lang.label}
                 </option>
               ))}
             </select>
@@ -258,15 +211,14 @@ export default function AudioStudioPage() {
           <div className="relative">
             <label className="text-xs text-zinc-500 mb-1 block">5. Format</label>
             <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
+              value={selectedFormat}
+              onChange={(e) => setSelectedFormat(e.target.value)}
               disabled={!selectedModel}
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select Format</option>
-              {formatOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+              {formats.map(format => (
+                <option key={format.value} value={format.value}>
+                  {format.label}
                 </option>
               ))}
             </select>
@@ -279,28 +231,69 @@ export default function AudioStudioPage() {
           <div className="relative">
             <textarea
               placeholder="Enter the text you want to convert to speech..."
-              className={`w-full min-h-32 rounded-2xl bg-zinc-900/80 backdrop-blur p-4 text-sm placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 transition-all ${
-                isOverLimit ? 'focus:ring-red-500 ring-1 ring-red-500' : 'focus:ring-zinc-700'
-              }`}
+              className="w-full min-h-32 rounded-2xl bg-zinc-900/80 backdrop-blur p-4 text-sm placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-all"
               value={text}
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleTextKeyDown}
+              maxLength={modelCapabilities.maxCharacters || 5000}
             />
             
-            {/* Character Counter */}
-            <div className={`absolute bottom-4 left-4 text-xs ${isOverLimit ? 'text-red-500' : 'text-zinc-500'}`}>
-              {charCount} / {maxChars} characters
+            {/* Character count */}
+            <div className="absolute bottom-4 left-4 text-xs text-zinc-500">
+              {charCount} / {modelCapabilities.maxCharacters || 5000} characters
             </div>
             
             {/* Send Button */}
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={!text.trim() || !selectedModel || isSubmitting || isOverLimit}
+              disabled={!text.trim() || !selectedModel}
               className="absolute bottom-4 right-4 w-10 h-10 bg-[#A259FF] hover:bg-[#9050e6] disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
             >
               <Send className="w-4 h-4 text-white" />
             </button>
+          </div>
+
+          {/* Optional Features */}
+          <div className="space-y-4">
+            {/* Voice Clone */}
+            {modelCapabilities.audioRef && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-4 bg-zinc-900/80 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Mic className="w-5 h-5 text-zinc-400" />
+                    <div>
+                      <p className="text-sm font-medium">Voice Clone</p>
+                      <p className="text-xs text-zinc-500">Upload audio sample for voice cloning</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={hasVoiceClone}
+                      onChange={(e) => {
+                        setHasVoiceClone(e.target.checked)
+                        if (!e.target.checked) setAudioFile(null)
+                      }}
+                      className="w-4 h-4 accent-[#A259FF]"
+                    />
+                  </div>
+                </div>
+                
+                {/* File input for audio */}
+                {hasVoiceClone && (
+                  <div className="ml-12 mr-4">
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
+                      className="w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700"
+                    />
+                    <p className="text-xs text-zinc-500 mt-1">Upload a clear voice sample (10-30 seconds)</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Cost Breakdown */}
@@ -312,9 +305,16 @@ export default function AudioStudioPage() {
               </div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">Text blocks ({Math.ceil(charCount / 1000) || 1} × 1000 chars)</span>
-                  <span>{selectedModelConfig?.credits.base || 0} credits/block</span>
+                  <span className="text-zinc-400">
+                    Text-to-speech ({Math.ceil(charCount / 1000)}k chars)
+                  </span>
+                  <span>{totalCost} credits</span>
                 </div>
+                {selectedModelConfig?.label.includes('Music') && (
+                  <div className="text-xs text-zinc-500 mt-2">
+                    * Music generation models charge per complete song
+                  </div>
+                )}
                 <div className="pt-2 mt-2 border-t border-zinc-800">
                   <div className="flex justify-between font-medium">
                     <span>Total</span>
@@ -324,7 +324,6 @@ export default function AudioStudioPage() {
               </div>
             </div>
           )}
-
         </div>
 
         {/* Model Info Box */}

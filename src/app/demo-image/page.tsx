@@ -1,46 +1,37 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Monitor, Camera, Clock, Send, Cpu, Volume2, Zap, Plus } from 'lucide-react'
+import { Image, Camera, Palette, Send, Zap, FileImage, Grid3x3, Plus } from 'lucide-react'
 import { ImageReferenceInput } from '@/components/ui/image-reference-input'
 import { ModelSelect } from '@/components/ui/model-select'
 import { InfoBox } from '@/components/ui/info-box'
-import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
-import { ALL_MODELS, getModelsByMediaType, getModelById, calculateTotalCost, canEnableLipSync, getLipSyncCost } from '@/config/all-models-config'
+import { ALL_MODELS, getModelsByMediaType, getModelById, calculateTotalCost } from '@/config/all-models-config'
 
-export default function VideoStudioPage() {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+export default function DemoImagePage() {
   // Estados dos dropdowns
   const [selectedProvider, setSelectedProvider] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
   const [aspectRatio, setAspectRatio] = useState('')
-  const [resolution, setResolution] = useState('')
-  const [duration, setDuration] = useState('')
+  const [dimensions, setDimensions] = useState('')
+  const [style, setStyle] = useState('')
   
   // Estados adicionais
   const [prompt, setPrompt] = useState('')
   const [hasImageRef, setHasImageRef] = useState(false)
-  const [hasLipSync, setHasLipSync] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
-  const [audioFile, setAudioFile] = useState<File | null>(null)
 
-  // Obter modelos de vídeo disponíveis
-  const videoModels = getModelsByMediaType('video')
+  // Obter modelos de imagem disponíveis
+  const imageModels = getModelsByMediaType('image')
   
-  // Obter lista de providers únicos que têm modelos de vídeo
-  const videoProviders = Array.from(
-    new Set(videoModels.map(m => m.provider))
+  // Obter lista de providers únicos que têm modelos de imagem
+  const imageProviders = Array.from(
+    new Set(imageModels.map(m => m.provider))
   ).sort()
 
   // Obter modelos do provider selecionado
-  const providerModels = videoModels
+  const providerModels = imageModels
     .filter(m => m.provider === selectedProvider)
     .sort((a, b) => {
-      // Ordenar por custo (low -> mid -> high)
       const tierOrder = { low: 0, mid: 1, high: 2 }
       return tierOrder[a.costTier] - tierOrder[b.costTier]
     })
@@ -55,20 +46,26 @@ export default function VideoStudioPage() {
     value: ratio
   }))
 
-  const resolutionOptions = (modelCapabilities.resolutions || []).map(res => ({
-    label: res,
-    value: res
+  const dimensionsOptions = (modelCapabilities.dimensions || []).map(dim => ({
+    label: dim,
+    value: dim
   }))
 
-  const durationOptions = (modelCapabilities.durations || []).map(dur => ({
-    label: `${dur}s`,
-    value: String(dur)
-  }))
+  // Estilos disponíveis
+  const styleOptions = [
+    { value: 'vivid', label: 'Vivid' },
+    { value: 'natural', label: 'Natural' },
+    { value: 'illustration', label: 'Illustration' },
+    { value: 'photographic', label: 'Photographic' },
+    { value: 'cinematic', label: 'Cinematic' },
+    { value: 'anime', label: 'Anime' },
+    { value: 'digital-art', label: 'Digital Art' },
+    { value: '3d-render', label: '3D Render' }
+  ]
 
-  // Reset em cascata quando mudar seleções superiores
+  // Reset em cascata
   useEffect(() => {
     if (selectedProvider) {
-      // Se o modelo atual não pertence ao provider, resetar
       const currentModelValid = providerModels.some(m => m.id === selectedModel)
       if (!currentModelValid && providerModels.length > 0) {
         setSelectedModel(providerModels[0].id)
@@ -83,96 +80,57 @@ export default function VideoStudioPage() {
         setAspectRatio(modelCapabilities.aspectRatios[0])
       }
       
-      // Reset resolution se não for válida
-      if (!modelCapabilities.resolutions?.includes(resolution) && modelCapabilities.resolutions?.length) {
-        setResolution(modelCapabilities.resolutions[0])
+      // Reset dimensions se não for válida
+      if (!modelCapabilities.dimensions?.includes(dimensions) && modelCapabilities.dimensions?.length) {
+        setDimensions(modelCapabilities.dimensions[0])
       }
       
-      // Reset duration se não for válida
-      const durationNum = parseInt(duration)
-      if (!modelCapabilities.durations?.includes(durationNum) && modelCapabilities.durations?.length) {
-        setDuration(String(modelCapabilities.durations[0]))
+      // Reset style
+      if (!style && styleOptions.length > 0) {
+        setStyle(styleOptions[0].value)
       }
       
-      // Desabilitar lip-sync se não suportado
-      if (!modelCapabilities.lipSync) {
-        setHasLipSync(false)
+      // Desabilitar image ref se não suportado
+      if (!modelCapabilities.imageRef) {
+        setHasImageRef(false)
       }
     }
   }, [selectedModel])
 
   // Calcular custos
   const totalCost = selectedModel ? calculateTotalCost(selectedModel, {
-    duration: parseInt(duration) || 5,
-    hasImageRef,
-    hasLipSync: hasLipSync && (modelCapabilities.lipSync || modelCapabilities.lipSyncAvailable)
+    hasImageRef
   }) : 0
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a prompt',
-        variant: 'destructive',
-      })
-      return
+  // Badge de custo
+  const getCostBadge = (tier: 'low' | 'mid' | 'high') => {
+    const badges = {
+      low: { bg: 'bg-green-500/20', text: 'text-green-600', label: 'Low' },
+      mid: { bg: 'bg-yellow-500/20', text: 'text-yellow-600', label: 'Mid' },
+      high: { bg: 'bg-red-500/20', text: 'text-red-600', label: 'High' }
     }
+    return badges[tier]
+  }
 
-    if (!selectedModel) {
-      toast({
-        title: 'Error',
-        description: 'Please select a model',
-        variant: 'destructive',
-      })
-      return
-    }
+  const handleGenerate = () => {
+    if (!selectedModel || !prompt.trim()) return
 
-    setIsSubmitting(true)
-
-    try {
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append('prompt', prompt)
-      formData.append('model', selectedModel)
-      formData.append('provider', selectedProvider)
-      formData.append('aspectRatio', aspectRatio)
-      formData.append('resolution', resolution)
-      formData.append('duration', duration)
+    alert(`
+      🎨 Configuração de Imagem 301.demo:
       
-      if (hasImageRef && imageFile) {
-        formData.append('imageRef', imageFile)
-      }
+      Provider: ${selectedProvider}
+      Modelo: ${selectedModelConfig?.label}
+      Prompt: ${prompt}
+      Aspect Ratio: ${aspectRatio}
+      Dimensões: ${dimensions}
+      Estilo: ${style}
       
-      if (hasLipSync && audioFile) {
-        formData.append('audioFile', audioFile)
-      }
-
-      const response = await fetch('/api/videos/generate', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate video')
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Video generation started!',
-      })
-
-      router.push(`/studio/video/${data.videoId}`)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to generate video',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+      Opcionais:
+      - Imagem de Referência: ${hasImageRef ? 'Sim' : 'Não'}
+      ${imageFile ? `- Arquivo de imagem: ${imageFile.name}` : ''}
+      
+      TOTAL: ${totalCost} créditos
+    `)
   }
 
   const handlePromptKeyDown = (e: React.KeyboardEvent) => {
@@ -189,18 +147,18 @@ export default function VideoStudioPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
             <div className="w-12 h-12 bg-[#A259FF] rounded-lg flex items-center justify-center">
-              <span className="text-white text-2xl">🎬</span>
+              <span className="text-white text-2xl">🎨</span>
             </div>
           </div>
           <h2 className="text-2xl font-light mb-2">
-            Create AI Videos with <span className="font-medium">Advanced Models</span>
+            Create AI Images with <span className="font-medium">Advanced Models</span>
           </h2>
           <p className="text-sm text-zinc-400">
-            Select from our comprehensive collection of video generation models
+            Generate stunning images with our collection of AI image models
           </p>
         </div>
 
-        {/* 5 Dropdowns em Cascata */}
+        {/* 5 Dropdowns */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-6">
           {/* 1. API/Provider */}
           <div className="relative">
@@ -211,7 +169,7 @@ export default function VideoStudioPage() {
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none"
             >
               <option value="">Select API</option>
-              {videoProviders.map(provider => (
+              {imageProviders.map(provider => (
                 <option key={provider} value={provider}>
                   {provider}
                 </option>
@@ -248,17 +206,17 @@ export default function VideoStudioPage() {
             </select>
           </div>
 
-          {/* 4. Resolution */}
+          {/* 4. Dimensions */}
           <div className="relative">
-            <label className="text-xs text-zinc-500 mb-1 block">4. Resolution</label>
+            <label className="text-xs text-zinc-500 mb-1 block">4. Dimensions</label>
             <select
-              value={resolution}
-              onChange={(e) => setResolution(e.target.value)}
-              disabled={!selectedModel || resolutionOptions.length === 0}
+              value={dimensions}
+              onChange={(e) => setDimensions(e.target.value)}
+              disabled={!selectedModel || dimensionsOptions.length === 0}
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select Resolution</option>
-              {resolutionOptions.map(option => (
+              <option value="">Select Size</option>
+              {dimensionsOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -266,17 +224,17 @@ export default function VideoStudioPage() {
             </select>
           </div>
 
-          {/* 5. Duration */}
+          {/* 5. Style */}
           <div className="relative">
-            <label className="text-xs text-zinc-500 mb-1 block">5. Duration</label>
+            <label className="text-xs text-zinc-500 mb-1 block">5. Style</label>
             <select
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              disabled={!selectedModel || durationOptions.length === 0}
+              value={style}
+              onChange={(e) => setStyle(e.target.value)}
+              disabled={!selectedModel}
               className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="">Select Duration</option>
-              {durationOptions.map(option => (
+              <option value="">Select Style</option>
+              {styleOptions.map(option => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -290,7 +248,7 @@ export default function VideoStudioPage() {
           {/* Prompt Input */}
           <div className="relative">
             <textarea
-              placeholder="Describe your video idea..."
+              placeholder="Describe your image with as much detail as possible..."
               className="w-full min-h-24 rounded-2xl bg-zinc-900/80 backdrop-blur p-4 text-sm placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-all"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
@@ -301,7 +259,7 @@ export default function VideoStudioPage() {
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={!prompt.trim() || !selectedModel || isSubmitting}
+              disabled={!prompt.trim() || !selectedModel}
               className="absolute bottom-4 right-4 w-10 h-10 bg-[#A259FF] hover:bg-[#9050e6] disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
             >
               <Send className="w-4 h-4 text-white" />
@@ -320,51 +278,6 @@ export default function VideoStudioPage() {
                 }}
               />
             )}
-
-            {/* Lip Sync Audio - Universal for all video models */}
-            {selectedModelConfig && canEnableLipSync(selectedModelConfig) && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 bg-zinc-900/80 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Volume2 className="w-5 h-5 text-zinc-400" />
-                    <div>
-                      <p className="text-sm font-medium">Lip Sync Audio</p>
-                      <p className="text-xs text-zinc-500">
-                        {modelCapabilities.lipSync 
-                          ? 'Upload audio for lip synchronization (native support)'
-                          : 'Upload audio for lip synchronization (AI enhancement)'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {getLipSyncCost(selectedModelConfig) > 0 && (
-                      <span className="text-xs text-zinc-500">+{getLipSyncCost(selectedModelConfig)} credits</span>
-                    )}
-                    <input
-                      type="checkbox"
-                      checked={hasLipSync}
-                      onChange={(e) => {
-                        setHasLipSync(e.target.checked)
-                        if (!e.target.checked) setAudioFile(null)
-                      }}
-                      className="w-4 h-4 accent-[#A259FF]"
-                    />
-                  </div>
-                </div>
-                
-                {/* File input for audio */}
-                {hasLipSync && (
-                  <div className="ml-12 mr-4">
-                    <input
-                      type="file"
-                      accept="audio/*"
-                      onChange={(e) => setAudioFile(e.target.files?.[0] || null)}
-                      className="w-full text-sm text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700"
-                    />
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Cost Breakdown */}
@@ -376,27 +289,13 @@ export default function VideoStudioPage() {
               </div>
               <div className="space-y-1 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-400">
-                    Base video ({duration || '5'}s)
-                  </span>
-                  <span>
-                    {selectedModelConfig?.credits.perSecond 
-                      ? Math.ceil((selectedModelConfig.credits.base * (parseInt(duration) || 5)) / 5)
-                      : selectedModelConfig?.credits.base || 0} credits
-                  </span>
+                  <span className="text-zinc-400">Base image generation</span>
+                  <span>{selectedModelConfig?.credits.base || 0} credits</span>
                 </div>
-                {hasImageRef && selectedModelConfig?.credits.imageRef > 0 && (
+                {hasImageRef && selectedModelConfig?.credits.imageRef && (
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Image reference</span>
                     <span className="text-yellow-500">+{selectedModelConfig.credits.imageRef} credits</span>
-                  </div>
-                )}
-                {hasLipSync && selectedModelConfig && canEnableLipSync(selectedModelConfig) && (
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">
-                      Lip sync {modelCapabilities.lipSync ? '(native)' : '(AI enhancement)'}
-                    </span>
-                    <span className="text-yellow-500">+{getLipSyncCost(selectedModelConfig)} credits</span>
                   </div>
                 )}
                 <div className="pt-2 mt-2 border-t border-zinc-800">

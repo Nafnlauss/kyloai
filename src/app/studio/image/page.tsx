@@ -1,74 +1,112 @@
 'use client'
 
-import { useState } from 'react'
-import { Sparkles, Monitor, Grid3x3, Palette, Send, Brush } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Image, Camera, Palette, Send, Zap, FileImage, Grid3x3 } from 'lucide-react'
+import { ImageReferenceInput } from '@/components/ui/image-reference-input'
+import { ModelSelect } from '@/components/ui/model-select'
+import { InfoBox } from '@/components/ui/info-box'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'
-import { ChipSelect } from '@/components/ui/chip-select'
-import { UploadCard } from '@/components/ui/upload-card'
-import { useImageParams } from '@/stores/image-params'
-
-const modelOptions = [
-  { label: 'Kylo Image Pro', value: 'kylo-image-pro', hint: '~2 credits' },
-  { label: 'Kylo Image Fast', value: 'kylo-image-fast', hint: '~1 credit' },
-  { label: 'Flux Pro', value: 'flux-pro', hint: '~3 credits' },
-  { label: 'Stable Diffusion XL', value: 'sdxl', hint: '~2 credits' },
-]
-
-const aspectRatioOptions = [
-  { label: '1:1', value: '1:1' },
-  { label: '4:5', value: '4:5' },
-  { label: '16:9', value: '16:9' },
-  { label: '21:9', value: '21:9' },
-  { label: '3:2', value: '3:2' },
-  { label: '2:3', value: '2:3' },
-  { label: '3:4', value: '3:4' },
-]
-
-const dimensionsOptions = [
-  { label: '1024×1024', value: '1024x1024' },
-  { label: '1536×768', value: '1536x768' },
-  { label: '768×1536', value: '768x1536' },
-  { label: '1536×658', value: '1536x658' },
-]
-
-const styleOptions = [
-  { label: 'Vivid', value: 'vivid' },
-  { label: 'Natural', value: 'natural' },
-  { label: 'Illustration', value: 'illustration' },
-  { label: 'Anime', value: 'anime' },
-]
+import { ALL_MODELS, getModelsByMediaType, getModelById, calculateTotalCost } from '@/config/all-models-config'
 
 export default function ImageStudioPage() {
   const { toast } = useToast()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const {
-    model,
-    aspectRatio,
-    dimensions,
-    style,
-    prompt,
-    refImage,
-    setParam,
-  } = useImageParams()
+  // Estados dos dropdowns
+  const [selectedProvider, setSelectedProvider] = useState('')
+  const [selectedModel, setSelectedModel] = useState('')
+  const [aspectRatio, setAspectRatio] = useState('')
+  const [dimensions, setDimensions] = useState('')
+  const [style, setStyle] = useState('')
   
-  const selectedModel = modelOptions.find(m => m.value === model)
-  const modelName = selectedModel?.label || 'AI Model'
+  // Estados adicionais
+  const [prompt, setPrompt] = useState('')
+  const [hasImageRef, setHasImageRef] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+
+  // Obter modelos de imagem disponíveis
+  const imageModels = getModelsByMediaType('image')
   
-  // Calculate credits based on model and dimensions
-  const calculateCredits = () => {
-    const baseCredits = {
-      'flux-kontext-pro-t2i': 2,
-      'imagen4': 3,
-      'flux-dev': 1,
-      'flux-11-pro': 4,
+  // Obter lista de providers únicos que têm modelos de imagem
+  const imageProviders = Array.from(
+    new Set(imageModels.map(m => m.provider))
+  ).sort()
+
+  // Obter modelos do provider selecionado
+  const providerModels = imageModels
+    .filter(m => m.provider === selectedProvider)
+    .sort((a, b) => {
+      const tierOrder = { low: 0, mid: 1, high: 2 }
+      return tierOrder[a.costTier] - tierOrder[b.costTier]
+    })
+
+  // Obter capacidades do modelo selecionado
+  const selectedModelConfig = getModelById(selectedModel)
+  const modelCapabilities = selectedModelConfig?.capabilities || {}
+
+  // Opções dinâmicas baseadas no modelo selecionado
+  const aspectRatioOptions = (modelCapabilities.aspectRatios || []).map(ratio => ({
+    label: ratio,
+    value: ratio
+  }))
+
+  const dimensionsOptions = (modelCapabilities.dimensions || []).map(dim => ({
+    label: dim,
+    value: dim
+  }))
+
+  // Estilos disponíveis
+  const styleOptions = [
+    { value: 'vivid', label: 'Vivid' },
+    { value: 'natural', label: 'Natural' },
+    { value: 'illustration', label: 'Illustration' },
+    { value: 'photographic', label: 'Photographic' },
+    { value: 'cinematic', label: 'Cinematic' },
+    { value: 'anime', label: 'Anime' },
+    { value: 'digital-art', label: 'Digital Art' },
+    { value: '3d-render', label: '3D Render' }
+  ]
+
+  // Reset em cascata
+  useEffect(() => {
+    if (selectedProvider) {
+      const currentModelValid = providerModels.some(m => m.id === selectedModel)
+      if (!currentModelValid && providerModels.length > 0) {
+        setSelectedModel(providerModels[0].id)
+      }
     }
-    
-    const dimensionMultiplier = dimensions === '1536x768' || dimensions === '768x1536' ? 1.5 : 1
-    return Math.ceil((baseCredits[model as keyof typeof baseCredits] || 2) * dimensionMultiplier)
-  }
+  }, [selectedProvider])
+
+  useEffect(() => {
+    if (selectedModel && selectedModelConfig) {
+      // Reset aspect ratio se não for válido
+      if (!modelCapabilities.aspectRatios?.includes(aspectRatio) && modelCapabilities.aspectRatios?.length) {
+        setAspectRatio(modelCapabilities.aspectRatios[0])
+      }
+      
+      // Reset dimensions se não for válida
+      if (!modelCapabilities.dimensions?.includes(dimensions) && modelCapabilities.dimensions?.length) {
+        setDimensions(modelCapabilities.dimensions[0])
+      }
+      
+      // Reset style
+      if (!style && styleOptions.length > 0) {
+        setStyle(styleOptions[0].value)
+      }
+      
+      // Desabilitar image ref se não suportado
+      if (!modelCapabilities.imageRef) {
+        setHasImageRef(false)
+      }
+    }
+  }, [selectedModel])
+
+  // Calcular custos
+  const totalCost = selectedModel ? calculateTotalCost(selectedModel, {
+    hasImageRef
+  }) : 0
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -80,17 +118,29 @@ export default function ImageStudioPage() {
       return
     }
 
+    if (!selectedModel) {
+      toast({
+        title: 'Error',
+        description: 'Please select a model',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsSubmitting(true)
 
     try {
+      // Create FormData for file upload
       const formData = new FormData()
       formData.append('prompt', prompt)
-      formData.append('model', model)
+      formData.append('model', selectedModel)
+      formData.append('provider', selectedProvider)
       formData.append('aspectRatio', aspectRatio)
       formData.append('dimensions', dimensions)
       formData.append('style', style)
-      if (refImage) {
-        formData.append('refImage', refImage)
+      
+      if (hasImageRef && imageFile) {
+        formData.append('imageRef', imageFile)
       }
 
       const response = await fetch('/api/images/generate', {
@@ -129,110 +179,178 @@ export default function ImageStudioPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl">
+    <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
             <div className="w-12 h-12 bg-[#A259FF] rounded-lg flex items-center justify-center">
-              <span className="text-white text-2xl">◆</span>
+              <span className="text-white text-2xl">🎨</span>
             </div>
           </div>
           <h2 className="text-2xl font-light mb-2">
-            Create an image with <span className="font-medium">{modelName}</span>
+            Create AI Images with <span className="font-medium">Advanced Models</span>
           </h2>
           <p className="text-sm text-zinc-400">
-            Transform your ideas into stunning AI-generated images. Describe what you want to create.
+            Generate stunning images with our collection of AI image models
           </p>
         </div>
 
-        {/* Parameters Bar */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
-          <ChipSelect
-            icon={<Brush className="w-3.5 h-3.5" />}
-            value={model}
-            onChange={(v) => setParam('model', v)}
-            options={modelOptions}
-          />
-          <ChipSelect
-            icon={<Monitor className="w-3.5 h-3.5" />}
-            value={aspectRatio}
-            onChange={(v) => setParam('aspectRatio', v)}
-            options={aspectRatioOptions}
-          />
-          <ChipSelect
-            icon={<Grid3x3 className="w-3.5 h-3.5" />}
-            value={dimensions}
-            onChange={(v) => setParam('dimensions', v)}
-            options={dimensionsOptions}
-          />
-          <ChipSelect
-            icon={<Palette className="w-3.5 h-3.5" />}
-            value={style}
-            onChange={(v) => setParam('style', v)}
-            options={styleOptions}
-          />
+        {/* 5 Dropdowns */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-2 mb-6">
+          {/* 1. API/Provider */}
+          <div className="relative">
+            <label className="text-xs text-zinc-500 mb-1 block">1. API</label>
+            <select
+              value={selectedProvider}
+              onChange={(e) => setSelectedProvider(e.target.value)}
+              className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none"
+            >
+              <option value="">Select API</option>
+              {imageProviders.map(provider => (
+                <option key={provider} value={provider}>
+                  {provider}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 2. Model com Badge */}
+          <div className="relative">
+            <label className="text-xs text-zinc-500 mb-1 block">2. Model</label>
+            <ModelSelect
+              models={providerModels}
+              value={selectedModel}
+              onChange={setSelectedModel}
+              disabled={!selectedProvider}
+            />
+          </div>
+
+          {/* 3. Aspect Ratio */}
+          <div className="relative">
+            <label className="text-xs text-zinc-500 mb-1 block">3. Aspect Ratio</label>
+            <select
+              value={aspectRatio}
+              onChange={(e) => setAspectRatio(e.target.value)}
+              disabled={!selectedModel || aspectRatioOptions.length === 0}
+              className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">Select Ratio</option>
+              {aspectRatioOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 4. Dimensions */}
+          <div className="relative">
+            <label className="text-xs text-zinc-500 mb-1 block">4. Dimensions</label>
+            <select
+              value={dimensions}
+              onChange={(e) => setDimensions(e.target.value)}
+              disabled={!selectedModel || dimensionsOptions.length === 0}
+              className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">Select Size</option>
+              {dimensionsOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* 5. Style */}
+          <div className="relative">
+            <label className="text-xs text-zinc-500 mb-1 block">5. Style</label>
+            <select
+              value={style}
+              onChange={(e) => setStyle(e.target.value)}
+              disabled={!selectedModel}
+              className="w-full px-3 py-2 bg-zinc-900/80 text-sm rounded-lg border border-zinc-800 focus:border-[#A259FF] focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="">Select Style</option>
+              {styleOptions.map(option => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Main Content Area */}
         <div className="space-y-6">
-          {/* Prompt Input with Reference Image */}
-          <div className="flex gap-4 items-start">
-            <div className="flex-1 relative">
-              <textarea
-                placeholder="Describe your image with as much detail as possible..."
-                className="w-full min-h-20 rounded-2xl bg-zinc-900/80 backdrop-blur p-4 text-sm placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-all"
-                value={prompt}
-                onChange={(e) => setParam('prompt', e.target.value)}
-                onKeyDown={handlePromptKeyDown}
-              />
-              
-              {/* Inspire Me Button */}
-              <button 
-                type="button"
-                className="absolute bottom-4 left-4 text-xs text-zinc-600 hover:text-zinc-400 flex items-center gap-1 border border-zinc-700 rounded-md px-3 py-1.5 transition-colors"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Inspire me
-              </button>
-              
-              {/* Send Button */}
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={isSubmitting || !prompt.trim()}
-                className="absolute bottom-4 right-4 w-10 h-10 bg-[#A259FF] hover:bg-[#9050e6] disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
-              >
-                <Send className="w-4 h-4 text-white" />
-              </button>
-            </div>
-            
-            {/* Reference Image on Desktop */}
-            <div className="hidden md:block">
-              <UploadCard
-                label="Reference Image"
-                file={refImage}
-                onChange={(file) => setParam('refImage', file)}
-                accept="image/*"
-              />
-            </div>
-          </div>
-          
-          {/* Reference Image on Mobile */}
-          <div className="block md:hidden flex justify-center">
-            <UploadCard
-              label="Reference Image"
-              file={refImage}
-              onChange={(file) => setParam('refImage', file)}
-              accept="image/*"
+          {/* Prompt Input */}
+          <div className="relative">
+            <textarea
+              placeholder="Describe your image with as much detail as possible..."
+              className="w-full min-h-24 rounded-2xl bg-zinc-900/80 backdrop-blur p-4 text-sm placeholder-zinc-500 resize-none focus:outline-none focus:ring-1 focus:ring-zinc-700 transition-all"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              onKeyDown={handlePromptKeyDown}
             />
+            
+            {/* Send Button */}
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={!prompt.trim() || !selectedModel || isSubmitting}
+              className="absolute bottom-4 right-4 w-10 h-10 bg-[#A259FF] hover:bg-[#9050e6] disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
+            >
+              <Send className="w-4 h-4 text-white" />
+            </button>
           </div>
 
-          {/* Credits Info */}
-          <div className="text-center text-sm text-zinc-500">
-            Total cost: <span className="text-[#A259FF] font-medium">{calculateCredits()} credits</span>
+          {/* Optional Features */}
+          <div className="space-y-4">
+            {/* Image Reference */}
+            {modelCapabilities.imageRef && (
+              <ImageReferenceInput
+                cost={selectedModelConfig?.credits.imageRef}
+                onChange={(file) => {
+                  setImageFile(file);
+                  setHasImageRef(!!file);
+                }}
+              />
+            )}
           </div>
+
+          {/* Cost Breakdown */}
+          {selectedModel && (
+            <div className="bg-zinc-900/80 rounded-lg p-4 space-y-2">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-4 h-4 text-[#A259FF]" />
+                <h3 className="text-sm font-medium">Cost Estimation</h3>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Base image generation</span>
+                  <span>{selectedModelConfig?.credits.base || 0} credits</span>
+                </div>
+                {hasImageRef && selectedModelConfig?.credits.imageRef && (
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">Image reference</span>
+                    <span className="text-yellow-500">+{selectedModelConfig.credits.imageRef} credits</span>
+                  </div>
+                )}
+                <div className="pt-2 mt-2 border-t border-zinc-800">
+                  <div className="flex justify-between font-medium">
+                    <span>Total</span>
+                    <span className="text-[#A259FF]">{totalCost} credits</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Model Info Box */}
+        {selectedModelConfig && (
+          <InfoBox model={selectedModelConfig} className="mt-6" />
+        )}
       </div>
     </div>
   )

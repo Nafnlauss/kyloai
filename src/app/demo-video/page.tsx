@@ -3,18 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Monitor, Camera, Clock, Send, Cpu, Volume2, Zap, Plus } from 'lucide-react'
 import { ImageReferenceInput } from '@/components/ui/image-reference-input'
+import { ChipSelect } from '@/components/ui/chip-select'
 import { ModelSelect } from '@/components/ui/model-select'
 import { InfoBox } from '@/components/ui/info-box'
-import { useToast } from '@/hooks/use-toast'
-import { useRouter } from 'next/navigation'
-import { ALL_MODELS, getModelsByMediaType, getModelById, calculateTotalCost, canEnableLipSync, getLipSyncCost } from '@/config/all-models-config'
+import { ALL_MODELS, PROVIDERS, getModelsByMediaType, getModelById, calculateTotalCost, canEnableLipSync, getLipSyncCost } from '@/config/all-models-config'
 
-export default function VideoStudioPage() {
-  const { toast } = useToast()
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  // Estados dos dropdowns
+export default function DemoVideoPage() {
+  // Estados dos 5 dropdowns
   const [selectedProvider, setSelectedProvider] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
   const [aspectRatio, setAspectRatio] = useState('')
@@ -108,71 +103,37 @@ export default function VideoStudioPage() {
     hasLipSync: hasLipSync && (modelCapabilities.lipSync || modelCapabilities.lipSyncAvailable)
   }) : 0
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      toast({
-        title: 'Error',
-        description: 'Please enter a prompt',
-        variant: 'destructive',
-      })
-      return
+  // Badge de custo
+  const getCostBadge = (tier: 'low' | 'mid' | 'high') => {
+    const badges = {
+      low: { bg: 'bg-green-500/20', text: 'text-green-600', label: 'Low' },
+      mid: { bg: 'bg-yellow-500/20', text: 'text-yellow-600', label: 'Mid' },
+      high: { bg: 'bg-red-500/20', text: 'text-red-600', label: 'High' }
     }
+    return badges[tier]
+  }
 
-    if (!selectedModel) {
-      toast({
-        title: 'Error',
-        description: 'Please select a model',
-        variant: 'destructive',
-      })
-      return
-    }
+  const handleGenerate = () => {
+    if (!selectedModel || !prompt.trim()) return
 
-    setIsSubmitting(true)
-
-    try {
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append('prompt', prompt)
-      formData.append('model', selectedModel)
-      formData.append('provider', selectedProvider)
-      formData.append('aspectRatio', aspectRatio)
-      formData.append('resolution', resolution)
-      formData.append('duration', duration)
+    alert(`
+      🎬 Configuração de Vídeo 301.demo:
       
-      if (hasImageRef && imageFile) {
-        formData.append('imageRef', imageFile)
-      }
+      Provider: ${selectedProvider}
+      Modelo: ${selectedModelConfig?.label}
+      Prompt: ${prompt}
+      Aspect Ratio: ${aspectRatio}
+      Resolução: ${resolution}
+      Duração: ${duration} segundos
       
-      if (hasLipSync && audioFile) {
-        formData.append('audioFile', audioFile)
-      }
-
-      const response = await fetch('/api/videos/generate', {
-        method: 'POST',
-        body: formData,
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate video')
-      }
-
-      toast({
-        title: 'Success',
-        description: 'Video generation started!',
-      })
-
-      router.push(`/studio/video/${data.videoId}`)
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to generate video',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSubmitting(false)
-    }
+      Opcionais:
+      - Imagem de Referência: ${hasImageRef ? 'Sim' : 'Não'}
+      - Lip Sync: ${hasLipSync && modelCapabilities.lipSync ? 'Sim' : 'Não disponível'}
+      ${imageFile ? `- Arquivo de imagem: ${imageFile.name}` : ''}
+      ${audioFile ? `- Arquivo de áudio: ${audioFile.name}` : ''}
+      
+      TOTAL: ${totalCost} créditos
+    `)
   }
 
   const handlePromptKeyDown = (e: React.KeyboardEvent) => {
@@ -301,7 +262,7 @@ export default function VideoStudioPage() {
             <button
               type="button"
               onClick={handleGenerate}
-              disabled={!prompt.trim() || !selectedModel || isSubmitting}
+              disabled={!prompt.trim() || !selectedModel}
               className="absolute bottom-4 right-4 w-10 h-10 bg-[#A259FF] hover:bg-[#9050e6] disabled:bg-zinc-700 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition-colors"
             >
               <Send className="w-4 h-4 text-white" />
