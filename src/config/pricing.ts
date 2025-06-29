@@ -25,95 +25,95 @@ export const PRICING_CONFIG = {
     LITE: {
       id: 'LITE',
       name: 'lite',
-      displayName: 'Básico',
-      description: 'Para criadores iniciantes',
-      monthlyPrice: 4900, // R$ 49,00
-      yearlyPrice: 47040, // R$ 470,40 (20% discount)
+      displayName: 'Basic',
+      description: 'For beginner creators',
+      monthlyPrice: 800, // $8.00
+      yearlyPrice: 7680, // $76.80 (20% discount)
       monthlyCredits: 100,
       yearlyCredits: 1200, // 100 x 12
       features: [
-        '100 créditos por mês',
-        'Vídeos até 10 segundos',
-        'Resolução 720p',
-        'Suporte por email',
-        'Sem marca d\'água',
+        '100 credits per month',
+        'Videos up to 10 seconds',
+        '720p resolution',
+        'Email support',
+        'No watermark',
       ],
       monthlyFeatures: [
-        'Créditos não acumulam',
-        'Renovação mensal',
+        'Credits don\'t accumulate',
+        'Monthly renewal',
       ],
       yearlyFeatures: [
-        '1.200 créditos anuais acumulativos',
-        'Use quando quiser durante o ano',
-        'Economia de 20%',
+        '1,200 annual accumulative credits',
+        'Use anytime during the year',
+        '20% savings',
       ],
       notIncluded: [
-        'Vídeos em Full HD',
-        'Uso comercial',
-        'Fila prioritária',
+        'Full HD videos',
+        'Commercial use',
+        'Priority queue',
       ]
     },
     CREATOR: {
       id: 'CREATOR',
       name: 'creator',
-      displayName: 'Criador',
-      description: 'Para profissionais',
-      monthlyPrice: 19900, // R$ 199,00
-      yearlyPrice: 191040, // R$ 1.910,40 (20% discount)
+      displayName: 'Creator',
+      description: 'For professionals',
+      monthlyPrice: 2600, // $26.00
+      yearlyPrice: 24960, // $249.60 (20% discount)
       monthlyCredits: 500,
       yearlyCredits: 6000, // 500 x 12
       popular: true,
       features: [
-        '500 créditos por mês',
-        'Vídeos até 15 segundos',
-        'Resolução Full HD',
-        'Uso comercial permitido',
-        'Sem marca d\'água',
-        'Fila prioritária',
-        'Suporte prioritário',
+        '500 credits per month',
+        'Videos up to 15 seconds',
+        'Full HD resolution',
+        'Commercial use allowed',
+        'No watermark',
+        'Priority queue',
+        'Priority support',
       ],
       monthlyFeatures: [
-        'Créditos não acumulam',
-        'Renovação mensal',
+        'Credits don\'t accumulate',
+        'Monthly renewal',
       ],
       yearlyFeatures: [
-        '6.000 créditos anuais acumulativos',
-        'Use quando quiser durante o ano',
-        'Economia de 20%',
+        '6,000 annual accumulative credits',
+        'Use anytime during the year',
+        '20% savings',
       ],
       notIncluded: [
         'API Access',
-        'Analytics avançado',
+        'Advanced analytics',
       ]
     },
     PROFESSIONAL: {
       id: 'PROFESSIONAL',
       name: 'professional',
-      displayName: 'Profissional',
-      description: 'Para empresas e agências',
-      monthlyPrice: 69900, // R$ 699,00
-      yearlyPrice: 671040, // R$ 6.710,40 (20% discount)
+      displayName: 'Professional',
+      description: 'For businesses and agencies',
+      monthlyPrice: 6800, // $68.00
+      yearlyPrice: 65280, // $652.80 (20% discount)
       monthlyCredits: 2000,
       yearlyCredits: 24000, // 2000 x 12
       features: [
-        '2000 créditos por mês',
-        'Vídeos até 30 segundos',
-        'Resolução Full HD',
-        'Uso comercial ilimitado',
+        '2000 credits per month',
+        'Videos up to 30 seconds',
+        'Full HD resolution',
+        'Unlimited commercial use',
         'API Access',
-        'Suporte prioritário',
-        'Analytics avançado',
-        'Múltiplos usuários',
-        'Fila prioritária',
+        'Priority support',
+        'Advanced analytics',
+        'Multiple users',
+        'Priority queue',
       ],
       monthlyFeatures: [
-        'Créditos não acumulam',
-        'Renovação mensal',
+        'Credits don\'t accumulate',
+        'Monthly renewal',
       ],
       yearlyFeatures: [
-        '24.000 créditos anuais acumulativos',
-        'Use quando quiser durante o ano',
-        'Economia de 20%',
+        '24,000 annual accumulative credits',
+        'Use anytime during the year',
+        '20% savings',
       ],
       notIncluded: []
     }
@@ -124,36 +124,36 @@ export const PRICING_CONFIG = {
     PACK_1000: {
       id: 'PACK_1000',
       credits: 1000,
-      price: 24990, // R$ 249,90
+      price: 800, // $8.00
       pricePerCredit: 0.25,
       name: 'Pro'
     },
     PACK_2500: {
       id: 'PACK_2500',
       credits: 2500,
-      price: 54990, // R$ 549,90
+      price: 1800, // $18.00
       pricePerCredit: 0.22,
       popular: true,
       name: 'Business',
-      savings: 'Save R$ 0,03/credit'
+      savings: 'Save $0.03/credit'
     },
     PACK_7000: {
       id: 'PACK_7000',
       credits: 7000,
-      price: 139990, // R$ 1.399,90
+      price: 4500, // $45.00
       pricePerCredit: 0.20,
       bestValue: true,
       name: 'Enterprise',
-      savings: 'Save R$ 0,05/credit'
+      savings: 'Save $0.05/credit'
     },
     PACK_16000: {
       id: 'PACK_16000',
       credits: 16000,
-      price: 279990, // R$ 2.799,90
+      price: 9000, // $90.00
       pricePerCredit: 0.175,
       maximum: true,
       name: 'Ultimate',
-      savings: 'Save R$ 0,075/credit - Best price!'
+      savings: 'Save $0.075/credit - Best price!'
     }
   },
   
@@ -193,7 +193,7 @@ export const PRICING_CONFIG = {
 
 // Helper functions
 export function formatPrice(cents: number): string {
-  return `R$ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+  return `$${(cents / 100).toFixed(2)}`;
 }
 
 export function getYearlyDiscount(): number {

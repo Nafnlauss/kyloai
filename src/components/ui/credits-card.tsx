@@ -132,7 +132,7 @@ export function CreditsCard() {
               ) : (
                 <>
                   <div className="text-2xl font-bold text-white">
-                    {credits.toLocaleString()}
+                    {credits.toLocaleString('en-US')}
                   </div>
                   <div className="text-xs text-zinc-400">remaining</div>
                 </>

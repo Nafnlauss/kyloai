@@ -25,6 +25,12 @@ model User {
   role              Role           @default(USER)
   isActive          Boolean        @default(true)
   
+  // Referral
+  referralCode      String?        @unique @default(cuid())
+  referredById      String?        // User who referred this user
+  referredBy        User?          @relation("ReferralRelation", fields: [referredById], references: [id])
+  referrals         User[]         @relation("ReferralRelation")
+  
   // Segurança
   twoFactorEnabled  Boolean        @default(false)
   twoFactorSecret   String?        // Encrypted
@@ -44,6 +50,11 @@ model User {
   creditHistory     CreditHistory[]
   preferences       UserPreferences?
   backupCodes       TwoFactorBackupCode[]
+  payments          Payment[]
+  referralEarnings  ReferralEarning[]
+  referralPayouts   ReferralPayout[]
+  referralStats     ReferralStats?
+  referredUserEarnings ReferralEarning[] @relation("ReferredUserEarnings")
   
   // Pagamentos
   stripeCustomerId  String?        @unique
@@ -55,6 +66,8 @@ model User {
   
   @@index([email])
   @@index([stripeCustomerId])
+  @@index([referralCode])
+  @@index([referredById])
 }
 
 model Account {
@@ -209,6 +222,7 @@ model Transaction {
   
   // Relacionamentos
   user                  User            @relation(fields: [userId], references: [id])
+  referralEarning       ReferralEarning?
   
   @@index([userId])
   @@index([status])
@@ -380,6 +394,9 @@ model UserPreferences {
   notifyOnNewFeatures    Boolean  @default(true)
   notifyOnPromotions     Boolean  @default(true)
   
+  // Additional settings
+  metadata               String?  @db.Text // JSON for wallet addresses and other data
+  
   // Timestamps
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
@@ -401,4 +418,139 @@ model TwoFactorBackupCode {
   
   @@index([userId])
   @@index([code])
+}
+
+// Stripe Payment model
+model Payment {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int      // em centavos
+  currency    String   @default("usd")
+  status      String   // succeeded | refunded | pending | failed
+  sessionId   String   @unique
+  metadata    String?  // JSON
+  createdAt   DateTime @default(now())
+  
+  // Relationships
+  user        User     @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Stripe webhook events tracking (for idempotency)
+model StripeEvent {
+  id          String   @id @default(cuid())
+  eventId     String   @unique // Stripe event ID
+  type        String   // checkout.session.completed, etc
+  processed   Boolean  @default(false)
+  data        String   // JSON payload
+  createdAt   DateTime @default(now())
+  
+  @@index([eventId])
+  @@index([type])
+}
+
+// Referral earnings tracking
+model ReferralEarning {
+  id                String    @id @default(cuid())
+  userId            String    // User who earned the commission
+  referredUserId    String    // User who made the purchase
+  transactionId     String    @unique // Reference to the transaction
+  amount            Int       // Commission amount in cents
+  percentage        Float     @default(5.0) // Commission percentage (5%)
+  status            ReferralStatus @default(PENDING)
+  payoutId          String?   // Reference to payout when paid
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  processedAt       DateTime?
+  
+  // Relationships
+  user              User      @relation(fields: [userId], references: [id])
+  referredUser      User      @relation("ReferredUserEarnings", fields: [referredUserId], references: [id])
+  transaction       Transaction @relation(fields: [transactionId], references: [id])
+  payout            ReferralPayout? @relation(fields: [payoutId], references: [id])
+  
+  @@index([userId])
+  @@index([referredUserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Referral payouts
+model ReferralPayout {
+  id                String    @id @default(cuid())
+  userId            String
+  amount            Int       // Total amount in cents
+  currency          String    @default("USD")
+  method            PayoutMethod
+  status            PayoutStatus @default(PENDING)
+  
+  // Crypto details
+  cryptoAddress     String?
+  cryptoNetwork     String?   // ERC20, SOL, POLYGON
+  transactionHash   String?
+  
+  // Bank details (for future expansion)
+  bankAccount       String?   // Encrypted
+  
+  // Metadata
+  metadata          String?   // JSON
+  processedBy       String?   // Admin who processed
+  notes             String?
+  
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  processedAt       DateTime?
+  
+  // Relationships
+  user              User      @relation(fields: [userId], references: [id])
+  earnings          ReferralEarning[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Referral statistics (for performance)
+model ReferralStats {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  totalReferrals    Int       @default(0)
+  activeReferrals   Int       @default(0) // Users who made at least one purchase
+  totalEarnings     Int       @default(0) // Total earned in cents
+  pendingEarnings   Int       @default(0) // Pending payout in cents
+  paidEarnings      Int       @default(0) // Already paid in cents
+  lastCalculatedAt  DateTime  @default(now())
+  
+  // Relationships
+  user              User      @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+}
+
+// Enums for referral system
+enum ReferralStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  CANCELLED
+}
+
+enum PayoutMethod {
+  USDT_ERC20
+  USDT_SOL
+  USDT_POLYGON
+  BANK_TRANSFER
+  PAYPAL
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }

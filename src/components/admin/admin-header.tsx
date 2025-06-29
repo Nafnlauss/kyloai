@@ -11,8 +11,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { LogOut, Settings, User } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 import { signOut } from 'next-auth/react'
+import { NotificationCenter } from './notification-center'
 
 export function AdminHeader() {
   const { data: session } = useSession()
@@ -27,6 +28,9 @@ export function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Notifications */}
+        <NotificationCenter />
+        
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -50,15 +54,6 @@ export function AdminHeader() {
                 </p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-600"

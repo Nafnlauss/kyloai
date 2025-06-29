@@ -4,14 +4,17 @@ export interface ApiConfig {
   badge: string
   badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline'
   description: string
-  creditsPerSecond: number
+  creditsPerSecond?: number
+  creditsPerRequest?: number
+  creditsPerCharacter?: number
   baseCredits: number
   generationTime: string
-  maxDuration: number
+  maxDuration?: number
   features: string[]
-  provider: 'LUMA' | 'KLING'
+  provider: 'LUMA' | 'KLING' | 'BFL' | 'ELEVENLABS' | 'PIAPI' | 'NEWPORT'
   version: string
   quality: 'PRO' | 'BEST'
+  type: 'video' | 'image' | 'audio' | 'multi'
 }
 
 export const API_CONFIGS: Record<string, ApiConfig> = {

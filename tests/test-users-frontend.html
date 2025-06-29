@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Frontend - Página de Usuários</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .info {
+            color: blue;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Teste Frontend - Página de Usuários</h1>
+        
+        <div class="test-section">
+            <h2>1. Teste da API</h2>
+            <button onclick="testAPI()">Testar API de Usuários</button>
+            <div id="api-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Simular Requisição da Página</h2>
+            <button onclick="simulatePage()">Simular Página de Usuários</button>
+            <div id="page-result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. Verificar Erros de Console</h2>
+            <p class="info">Abra o Console do navegador (F12) e veja se há erros ao acessar:</p>
+            <a href="http://localhost:3000/admin/users" target="_blank">
+                <button>Abrir Página de Usuários</button>
+            </a>
+        </div>
+        
+        <div class="test-section">
+            <h2>4. Instruções de Correção</h2>
+            <ol>
+                <li>Já adicionei <code>ADMIN_DEMO_MODE=true</code> ao seu .env.local</li>
+                <li>Agora reinicie o servidor:
+                    <pre>Ctrl+C (para parar)
+pnpm dev (para iniciar)</pre>
+                </li>
+                <li>Acesse novamente: <a href="http://localhost:3000/admin/users">http://localhost:3000/admin/users</a></li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        async function testAPI() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = '<p>Testando API...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/users');
+                const data = await response.json();
+                
+                if (response.ok && data.users) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ API funcionando!</p>
+                        <p>Total de usuários: ${data.users.length}</p>
+                        <p>Usuários:</p>
+                        <pre>${JSON.stringify(data.users, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Erro na API:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Erro de conexão:</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function simulatePage() {
+            const resultDiv = document.getElementById('page-result');
+            resultDiv.innerHTML = '<p>Simulando página...</p>';
+            
+            try {
+                // Simular o fetch que a página faz
+                const params = new URLSearchParams({
+                    page: '1',
+                    limit: '10',
+                    q: ''
+                });
+                
+                const response = await fetch(`http://localhost:3000/api/admin/users?${params}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Simulação bem-sucedida!</p>
+                        <p>A página deveria mostrar ${data.users.length} usuários</p>
+                        <p>Se a página está vazia, pode ser um problema de renderização React.</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ Erro na simulação:</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p class="info">Este erro explica porque a página está vazia.</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Erro:</p>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

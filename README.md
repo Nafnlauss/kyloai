@@ -45,6 +45,36 @@ pnpm prisma migrate dev
 pnpm dev
 ```
 
+## 💳 Stripe Integration
+
+### Webhook Configuration
+
+After deploying, configure Stripe webhook in your [Stripe Dashboard](https://dashboard.stripe.com/webhooks):
+
+1. **Endpoint URL**: `https://your-domain.com/api/admin/stripe/webhook`
+2. **Events to listen**:
+   - `checkout.session.completed`
+   - `payment_intent.succeeded` 
+   - `charge.refunded`
+3. **Copy the webhook secret** and add to your environment:
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+### Testing Stripe Integration
+
+Use Stripe CLI for local testing:
+```bash
+# Install Stripe CLI
+# https://stripe.com/docs/stripe-cli
+
+# Forward webhooks to local server
+stripe listen --forward-to localhost:3000/api/admin/stripe/webhook
+
+# Trigger test events
+stripe trigger checkout.session.completed
+```
+
 ## 🚀 Deploy
 
 ### Deploy Rápido (Vercel)
@@ -93,6 +123,49 @@ ai-video-hub/
 - ✅ Headers de segurança (Helmet)
 - ✅ Auditoria completa
 - ✅ 2FA opcional
+
+## 🎛️ Dashboard Administrativo (DEMO)
+
+O projeto inclui um dashboard administrativo completo em modo demo para monitoramento e gestão da plataforma:
+
+### Funcionalidades do Dashboard
+
+- **📊 Overview**: Métricas de lucratividade, KPIs e gráficos de tendências
+- **👥 Gestão de Usuários**: Tabela completa com ações de administração
+- **📈 Transações**: Log detalhado de requisições às APIs com custos
+- **🚨 Alertas**: Sistema configurável de alertas e notificações
+- **💰 Análise de Custos**: Análise detalhada de custos por provider
+- **🌐 Monitor de APIs**: Status em tempo real dos providers
+- **📝 Audit Log**: Rastreamento completo de ações administrativas
+
+### Acessando o Dashboard
+
+```bash
+# Acesse em modo demo (somente leitura)
+http://localhost:3000/admin/overview
+
+# Funcionalidades disponíveis:
+- Visualização de métricas e gráficos
+- Filtros e busca em tabelas
+- Simulação de dados em tempo real
+- Export visual (PDF preview)
+```
+
+### Tecnologias Utilizadas
+
+- **Charts**: Recharts para visualizações
+- **Tables**: @tanstack/react-table
+- **Mock Data**: @faker-js/faker
+- **Real-time**: Simulação com hooks customizados
+
+### Modo Demo
+
+⚠️ **Importante**: O dashboard está em modo DEMO (somente leitura). Todas as ações de escrita mostram notificação informativa.
+
+Para migrar para produção:
+1. Remova a flag `NEXT_PUBLIC_DEMO_MODE`
+2. Conecte aos dados reais do Prisma
+3. Implemente as ações de escrita nos handlers
 
 ## 📚 Documentação
 

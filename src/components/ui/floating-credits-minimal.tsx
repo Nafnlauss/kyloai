@@ -25,12 +25,12 @@ export function FloatingCreditsMinimal() {
     }
 
     fetchCredits()
-    // Atualiza a cada 30 segundos
+    // Update every 30 seconds
     const interval = setInterval(fetchCredits, 30000)
     return () => clearInterval(interval)
   }, [session, status])
 
-  // Só mostra se estiver autenticado
+  // Only show if authenticated
   if (status !== 'authenticated' || credits === null) {
     return null
   }
@@ -38,7 +38,7 @@ export function FloatingCreditsMinimal() {
   return (
     <Link href="/pricing" className="fixed bottom-6 right-6 z-40 group">
       <div className="relative">
-        {/* Badge principal */}
+        {/* Main badge */}
         <div className="flex items-center gap-2 bg-background border-2 border-primary/20 px-4 py-2 rounded-full shadow-lg group-hover:shadow-xl group-hover:border-primary/40 transition-all duration-200">
           <div className="relative">
             <Coins className="h-5 w-5 text-primary" />
@@ -49,13 +49,13 @@ export function FloatingCreditsMinimal() {
               </span>
             )}
           </div>
-          <span className="font-bold text-lg">{credits.toLocaleString()}</span>
+          <span className="font-bold text-lg">{credits.toLocaleString('en-US')}</span>
         </div>
         
         {/* Tooltip */}
         <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <div className="bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap">
-            Clique para comprar créditos
+            Click to buy credits
           </div>
         </div>
       </div>

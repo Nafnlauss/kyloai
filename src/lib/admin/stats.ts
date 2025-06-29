@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { subMonths, startOfMonth, endOfMonth } from 'date-fns'
 
 export async function getAdminStats() {
+  
   const now = new Date()
   const lastMonth = subMonths(now, 1)
   
@@ -26,6 +27,10 @@ export async function getAdminStats() {
     },
     _sum: { amount: true }
   })
+
+  // Total costs (estimated from videos)
+  const totalCosts = await calculateTotalCosts()
+  const lastMonthCosts = await calculateTotalCosts(startOfMonth(lastMonth), endOfMonth(lastMonth))
 
   // Active Users (logged in last 30 days)
   const activeUsers = await prisma.user.count({
@@ -106,22 +111,125 @@ export async function getAdminStats() {
     completed: 0
   }
 
+  // Calculate real growth values
+  const previousMonthUsers = await prisma.user.count({
+    where: {
+      createdAt: {
+        lte: endOfMonth(lastMonth)
+      }
+    }
+  })
+  
+  const previousMonthVideos = await prisma.video.count({
+    where: {
+      createdAt: {
+        lte: endOfMonth(lastMonth)
+      },
+      status: 'COMPLETED'
+    }
+  })
+  
+  const userGrowth = calculateGrowth(activeUsers, previousMonthUsers)
+  const videoGrowth = calculateGrowth(totalVideos, previousMonthVideos)
+  
+  // Calculate churn rate
+  const previousMonthSubscriptions = await prisma.subscription.count({
+    where: {
+      createdAt: { lte: endOfMonth(lastMonth) },
+      status: 'ACTIVE'
+    }
+  })
+  
+  const cancelledSubscriptions = await prisma.subscription.count({
+    where: {
+      status: 'CANCELLED',
+      updatedAt: {
+        gte: startOfMonth(now),
+        lte: endOfMonth(now)
+      }
+    }
+  })
+  
+  const churnRate = previousMonthSubscriptions > 0 
+    ? (cancelledSubscriptions / previousMonthSubscriptions) * 100 
+    : 0
+
+  // Calculate error rate from failed videos
+  const failedVideos = await prisma.video.count({
+    where: {
+      status: 'FAILED',
+      createdAt: {
+        gte: subMonths(now, 1)
+      }
+    }
+  })
+  
+  const totalRecentVideos = await prisma.video.count({
+    where: {
+      createdAt: {
+        gte: subMonths(now, 1)
+      }
+    }
+  })
+  
+  const errorRate = totalRecentVideos > 0 
+    ? (failedVideos / totalRecentVideos) * 100 
+    : 0
+
   return {
     totalRevenue: totalRevenue._sum.amount || 0,
     revenueGrowth,
+    totalCosts,
+    lastMonthCosts,
     activeUsers,
-    userGrowth: 15.3, // Mock data - calculate from DB in production
+    userGrowth,
     totalVideos,
-    videoGrowth: 23.5, // Mock data
+    videoGrowth,
     activeSubscriptions,
-    churnRate: 5.2, // Mock data
+    churnRate,
     revenueChart,
     recentSales,
     apiUsage,
     topPlans: plansWithDetails,
     queueHealth,
-    errorRate: 0.3 // Mock data
+    errorRate
   }
+}
+
+
+// Calculate total costs from API usage
+async function calculateTotalCosts(startDate?: Date, endDate?: Date) {
+  const where = startDate && endDate ? {
+    createdAt: {
+      gte: startDate,
+      lte: endDate
+    }
+  } : {}
+  
+  const videos = await prisma.video.findMany({
+    where,
+    select: {
+      provider: true,
+      creditsUsed: true
+    }
+  })
+  
+  const costs = videos.reduce((total, video) => {
+    const costPerCredit = getCostPerCredit(video.provider)
+    return total + (video.creditsUsed * costPerCredit)
+  }, 0)
+  
+  return costs * 100 // Convert to cents
+}
+
+function getCostPerCredit(provider: string): number {
+  const costs = {
+    LUMA_V1: 0.003,
+    LUMA_V2: 0.005,
+    KLING_V1: 0.004,
+    KLING_V2: 0.008
+  }
+  return costs[provider as keyof typeof costs] || 0.005
 }
 
 function calculateGrowth(current: number, previous: number): number {

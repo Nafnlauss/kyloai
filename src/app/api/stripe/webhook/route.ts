@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendPurchaseConfirmationEmail, sendSubscriptionRenewalEmail } from '@/lib/email/email-service'
+import { ReferralManager } from '@/lib/referral'
 import type Stripe from 'stripe'
 
 const relevantEvents = new Set([
@@ -91,7 +92,11 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { email: true, name: true },
+    select: { 
+      email: true, 
+      name: true,
+      referredById: true 
+    },
   })
   
   if (!user) {
@@ -135,6 +140,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       amount: session.amount_total || 0,
       credits,
     })
+    
+    // Process referral commission if user was referred
+    if (user.referredById && session.amount_total) {
+      await ReferralManager.createEarning(
+        transaction.id,
+        user.referredById,
+        userId,
+        session.amount_total
+      )
+    }
   }
   // Handle subscription
   else {
@@ -249,13 +264,20 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   if (!invoice.subscription) return
   
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  const { stripe } = await import('@/lib/stripe/stripe')
+  const subscription = await stripe().subscriptions.retrieve(invoice.subscription as string)
   const userId = subscription.metadata.userId
   
   if (!userId) return
   
+  // Get user to check for referral
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { referredById: true }
+  })
+  
   // Create transaction record
-  await prisma.transaction.create({
+  const transaction = await prisma.transaction.create({
     data: {
       userId,
       amount: invoice.amount_paid,
@@ -271,12 +293,23 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       }),
     },
   })
+  
+  // Process referral commission if user was referred
+  if (user?.referredById && invoice.amount_paid > 0) {
+    await ReferralManager.createEarning(
+      transaction.id,
+      user.referredById,
+      userId,
+      invoice.amount_paid
+    )
+  }
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   if (!invoice.subscription) return
   
-  const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string)
+  const { stripe } = await import('@/lib/stripe/stripe')
+  const subscription = await stripe().subscriptions.retrieve(invoice.subscription as string)
   const userId = subscription.metadata.userId
   
   if (!userId) return

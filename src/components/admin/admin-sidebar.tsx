@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -12,20 +13,45 @@ import {
   FileText,
   Shield,
   ChevronLeft,
+  Receipt,
+  AlertTriangle,
+  Calculator,
+  Activity,
+  WifiIcon,
+  DollarSign,
+  Wallet,
+  Link2,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const navigation = [
   { name: 'Overview', href: '/admin/overview', icon: LayoutDashboard },
+  { name: 'Metrics', href: '/admin/metrics', icon: BarChart3 },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Credits', href: '/admin/credits', icon: Wallet },
   { name: 'Videos', href: '/admin/videos', icon: Video },
-  { name: 'Plans', href: '/admin/plans', icon: Package },
+  { name: 'Stripe', href: '/admin/stripe', icon: DollarSign },
+  { name: 'Transactions', href: '/admin/transactions', icon: Receipt },
   { name: 'Payments', href: '/admin/payments', icon: CreditCard },
-  { name: 'Audit Logs', href: '/admin/logs', icon: FileText },
+  { name: 'Referrals', href: '/admin/referrals', icon: Users },
+  { name: 'Payouts', href: '/admin/payouts', icon: Wallet },
+  { name: 'Plans', href: '/admin/plans', icon: Package },
+  { name: 'Alerts', href: '/admin/alerts', icon: AlertTriangle },
+  { name: 'Pricing', href: '/admin/pricing', icon: Calculator },
+  { name: 'Pricing Config', href: '/admin/pricing-config', icon: Calculator },
+  { name: 'API Status', href: '/admin/api-status', icon: WifiIcon },
+  { name: 'Integrations', href: '/admin/integrations', icon: Link2 },
+  { name: 'Audit Log', href: '/admin/audit', icon: FileText },
 ]
 
 export function AdminSidebar() {
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <div className="flex h-full w-64 flex-col bg-card border-r">
@@ -40,7 +66,7 @@ export function AdminSidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = mounted && pathname === item.href
           return (
             <Link
               key={item.name}

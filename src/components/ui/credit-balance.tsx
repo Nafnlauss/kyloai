@@ -35,12 +35,12 @@ export function CreditBalance() {
     fetchCredits()
   }, [session, status])
 
-  // Se não estiver autenticado, não mostra nada
+  // If not authenticated, show nothing
   if (status === 'unauthenticated') {
     return null
   }
 
-  // Se estiver carregando
+  // If loading
   if (status === 'loading' || loading) {
     return (
       <Button variant="ghost" size="sm" disabled>
@@ -49,16 +49,16 @@ export function CreditBalance() {
     )
   }
 
-  // Mostra o saldo de créditos
+  // Show credit balance
   return (
     <Link href="#pricing" className="group">
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-violet-600/10 hover:from-primary/20 hover:to-violet-600/20 transition-all duration-200 border border-primary/20">
         <Coins className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
         <span className="font-bold text-sm">
-          {credits !== null ? credits.toLocaleString() : '0'}
+          {credits !== null ? credits.toLocaleString('en-US') : '0'}
         </span>
         <span className="text-xs text-muted-foreground hidden sm:inline">
-          créditos
+          credits
         </span>
       </div>
     </Link>

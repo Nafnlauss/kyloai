@@ -37,7 +37,7 @@ export function RecentSales({ sales }: RecentSalesProps) {
             </p>
           </div>
           <div className="ml-auto font-medium">
-            +R$ {(sale.amount / 100).toLocaleString('pt-BR')}
+            +${(sale.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
         </div>
       ))}

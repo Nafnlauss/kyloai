@@ -1,76 +1,86 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/get-session'
-import { authOptions } from '@/lib/auth/auth-options'
 import { prisma } from '@/lib/prisma'
+import { isDemoMode } from '@/lib/auth/demo-mode'
 
-export const dynamic = 'force-dynamic'
-
-export async function GET(request: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Check authentication and admin role
+    if (!isDemoMode()) {
+      const session = await getServerSession()
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { role: true }
+      })
+
+      if (user?.role !== 'ADMIN') {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
     }
 
-    const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status')
-    const provider = searchParams.get('provider')
-    const search = searchParams.get('search')
+    // Get query parameters
+    const { searchParams } = new URL(req.url)
     const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '20')
+    const status = searchParams.get('status') || ''
+    const provider = searchParams.get('provider') || ''
+
+    const offset = (page - 1) * limit
 
     // Build where clause
-    const where: any = {}
-    
-    if (status && status !== 'all') {
-      where.status = status
-    }
-    
-    if (provider && provider !== 'all') {
-      where.provider = provider
-    }
-    
-    if (search) {
-      where.OR = [
-        { prompt: { contains: search, mode: 'insensitive' } },
-        { id: { contains: search, mode: 'insensitive' } },
-        { user: { email: { contains: search, mode: 'insensitive' } } },
-        { user: { name: { contains: search, mode: 'insensitive' } } },
-      ]
+    const where = {
+      ...(status && { status }),
+      ...(provider && { provider })
     }
 
-    // Fetch videos with pagination
+    // Get videos and total count
     const [videos, total] = await Promise.all([
       prisma.video.findMany({
         where,
         include: {
           user: {
             select: {
-              id: true,
-              name: true,
               email: true,
-            },
-          },
+              name: true
+            }
+          }
         },
         orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: offset,
+        take: limit
       }),
-      prisma.video.count({ where }),
+      prisma.video.count({ where })
     ])
 
     return NextResponse.json({
-      videos,
+      videos: videos.map(video => ({
+        id: video.id,
+        prompt: video.prompt,
+        provider: video.provider,
+        status: video.status,
+        url: video.url,
+        thumbnailUrl: video.thumbnailUrl,
+        duration: video.duration,
+        creditsUsed: video.creditsUsed,
+        createdAt: video.createdAt,
+        user: {
+          email: video.user.email,
+          name: video.user.name
+        }
+      })),
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit),
-      },
+        totalPages: Math.ceil(total / limit)
+      }
     })
   } catch (error) {
-    console.error('Error fetching admin videos:', error)
+    console.error('Admin videos error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch videos' },
       { status: 500 }

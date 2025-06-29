@@ -27,12 +27,12 @@ export function FloatingCredits() {
     }
 
     fetchCredits()
-    // Atualiza a cada 30 segundos
+    // Update every 30 seconds
     const interval = setInterval(fetchCredits, 30000)
     return () => clearInterval(interval)
   }, [session, status])
 
-  // Só mostra se estiver autenticado
+  // Only show if authenticated
   if (status !== 'authenticated' || credits === null) {
     return null
   }
@@ -47,11 +47,11 @@ export function FloatingCredits() {
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             className="absolute bottom-16 right-0 bg-background border border-border rounded-lg shadow-xl p-4 w-64"
           >
-            <h3 className="font-semibold mb-3">Saldo de Créditos</h3>
+            <h3 className="font-semibold mb-3">Credit Balance</h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Disponível</span>
-                <span className="font-bold text-lg">{credits.toLocaleString()}</span>
+                <span className="text-muted-foreground">Available</span>
+                <span className="font-bold text-lg">{credits.toLocaleString('en-US')}</span>
               </div>
               <div className="border-t pt-3 space-y-2">
                 <Link 
@@ -59,7 +59,7 @@ export function FloatingCredits() {
                   className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors"
                   onClick={() => setIsExpanded(false)}
                 >
-                  <span className="text-sm">Comprar créditos</span>
+                  <span className="text-sm">Buy credits</span>
                   <Plus className="h-4 w-4" />
                 </Link>
                 <Link 
@@ -67,7 +67,7 @@ export function FloatingCredits() {
                   className="flex items-center justify-between p-2 rounded hover:bg-muted/50 transition-colors"
                   onClick={() => setIsExpanded(false)}
                 >
-                  <span className="text-sm">Ver histórico</span>
+                  <span className="text-sm">View history</span>
                   <span className="text-xs text-muted-foreground">→</span>
                 </Link>
               </div>
@@ -84,7 +84,7 @@ export function FloatingCredits() {
       >
         <div className="relative flex items-center gap-2 bg-gradient-to-r from-primary to-violet-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl transition-shadow">
           <Coins className="h-5 w-5" />
-          <span className="font-bold text-lg">{credits.toLocaleString()}</span>
+          <span className="font-bold text-lg">{credits.toLocaleString('en-US')}</span>
         </div>
         
         {/* Indicador pulsante para chamar atenção */}

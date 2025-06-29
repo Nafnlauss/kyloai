@@ -4,7 +4,7 @@ import './globals.css'
 import { Providers } from './providers'
 import { CookieConsent } from '@/components/ui/cookie-consent'
 import { GoogleAnalytics } from '@/components/analytics/google-analytics'
-import { ErrorLogger } from './error-logger'
+// import { ErrorLogger } from './error-logger'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -57,11 +57,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
-      </head>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
           {/* {process.env.NODE_ENV === 'development' && <ErrorLogger />} */}

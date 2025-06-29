@@ -1,76 +1,69 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/auth/get-session'
-import { authOptions } from '@/lib/auth/auth-options'
 import { prisma } from '@/lib/prisma'
 
-export const dynamic = 'force-dynamic'
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session || session.user.role !== 'ADMIN') {
+    // Check authentication and admin role
+    const session = await getServerSession()
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Fetch aggregate stats
-    const [
-      total,
-      statusCounts,
-      creditsUsed,
-      storageStats
-    ] = await Promise.all([
-      // Total videos
-      prisma.video.count(),
-      
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true }
+    })
+
+    if (user?.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Get video stats
+    const [statusCounts, providerCounts, totalCredits] = await Promise.all([
       // Count by status
       prisma.video.groupBy({
         by: ['status'],
-        _count: true,
+        _count: true
       }),
-      
+      // Count by provider
+      prisma.video.groupBy({
+        by: ['provider'],
+        _count: true,
+        _sum: {
+          creditsUsed: true
+        }
+      }),
       // Total credits used
       prisma.video.aggregate({
         _sum: {
-          creditsUsed: true,
+          creditsUsed: true
         },
-      }),
-      
-      // Storage estimation (simplified - in real app would check actual file sizes)
-      prisma.video.aggregate({
-        _count: {
-          url: true,
-        },
-        where: {
-          url: { not: null },
-        },
-      }),
+        _avg: {
+          creditsUsed: true
+        }
+      })
     ])
 
-    // Process status counts
-    const statusMap = statusCounts.reduce((acc, curr) => {
-      acc[curr.status.toLowerCase()] = curr._count
-      return acc
-    }, {} as Record<string, number>)
-
-    // Estimate storage (assuming average 50MB per video)
-    const estimatedStorageGB = ((storageStats._count.url || 0) * 50) / 1024
-    const storageUsed = estimatedStorageGB < 1 
-      ? `${Math.round(estimatedStorageGB * 1024)} MB`
-      : `${estimatedStorageGB.toFixed(2)} GB`
-
     return NextResponse.json({
-      total,
-      completed: statusMap.completed || 0,
-      processing: (statusMap.processing || 0) + (statusMap.queued || 0),
-      failed: statusMap.failed || 0,
-      totalCreditsUsed: creditsUsed._sum.creditsUsed || 0,
-      storageUsed,
+      byStatus: statusCounts.reduce((acc, curr) => ({
+        ...acc,
+        [curr.status]: curr._count
+      }), {}),
+      byProvider: providerCounts.map(p => ({
+        provider: p.provider,
+        count: p._count,
+        totalCredits: p._sum.creditsUsed || 0
+      })),
+      totals: {
+        totalCreditsUsed: totalCredits._sum.creditsUsed || 0,
+        averageCreditsPerVideo: totalCredits._avg.creditsUsed || 0
+      }
     })
   } catch (error) {
-    console.error('Error fetching video stats:', error)
+    console.error('Video stats error:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch stats' },
+      { error: 'Failed to fetch video stats' },
       { status: 500 }
     )
   }

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste de Dropdowns</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #0a0a0a;
+      color: white;
+    }
+    .test-section {
+      margin: 20px 0;
+      padding: 20px;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+    button {
+      background: #A259FF;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    button:hover {
+      background: #9050e6;
+    }
+    .result {
+      margin-top: 10px;
+      padding: 10px;
+      background: #1a1a1a;
+      border-radius: 4px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Teste de Dropdowns - AI Video Hub</h1>
+  
+  <div class="test-section">
+    <h2>Testar Páginas Demo</h2>
+    <button onclick="testPage('demo-video')">Testar Video</button>
+    <button onclick="testPage('demo-audio')">Testar Audio</button>
+    <button onclick="testPage('demo-image')">Testar Image</button>
+    <div id="result" class="result"></div>
+  </div>
+
+  <script>
+    async function testPage(page) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.textContent = `Testando ${page}...\n`;
+      
+      try {
+        const response = await fetch(`http://localhost:3001/${page}`);
+        if (response.ok) {
+          resultDiv.textContent += `✅ Página ${page} carregada com sucesso!\n`;
+          resultDiv.textContent += `Status: ${response.status}\n`;
+          
+          // Abrir em nova aba
+          window.open(`http://localhost:3001/${page}`, '_blank');
+        } else {
+          resultDiv.textContent += `❌ Erro ao carregar ${page}\n`;
+          resultDiv.textContent += `Status: ${response.status}\n`;
+        }
+      } catch (error) {
+        resultDiv.textContent += `❌ Erro: ${error.message}\n`;
+      }
+    }
+  </script>
+</body>
+</html>

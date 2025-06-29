@@ -301,7 +301,7 @@ export default function HomePage() {
                       </p>
                     )}
                     <div className="text-[#A259FF] font-semibold mt-3">
-                      {plan.credits.toLocaleString()} credits
+                      {plan.credits.toLocaleString('en-US')} credits
                       {plan.id !== 'free' && ' per month'}
                     </div>
                     {plan.id !== 'free' && (

@@ -5,7 +5,9 @@ import { z } from 'zod'
 import { sendWelcomeEmail } from '@/lib/email/email-service'
 import { AccountLimiter } from '@/lib/security/account-limiter'
 import { DeviceTracker } from '@/lib/security/device-tracker'
+import { ReferralManager } from '@/lib/referral'
 import { randomBytes } from 'crypto'
+import { cookies } from 'next/headers'
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -77,6 +79,10 @@ export async function POST(request: NextRequest) {
     const emailVerificationToken = randomBytes(32).toString('hex')
     const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
     
+    // Check for referral cookie
+    const cookieStore = cookies()
+    const referralCode = cookieStore.get('ref')?.value || null
+    
     // Create user with free credits
     const user = await prisma.user.create({
       data: {
@@ -93,6 +99,13 @@ export async function POST(request: NextRequest) {
         // bio: null,
       },
     })
+    
+    // Link referral if code exists
+    if (referralCode) {
+      await ReferralManager.linkReferral(user.id, referralCode)
+      // Clear referral cookie after successful registration
+      ReferralManager.clearReferralCookie()
+    }
     
     // No subscription needed for free users
     // Users only get subscriptions when they upgrade to paid plans

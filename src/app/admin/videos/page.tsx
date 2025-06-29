@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/hooks/use-toast'
 import { format, formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { ExportButton } from '@/components/admin/export-button'
 import { 
   Search, 
   Filter, 
@@ -158,8 +159,12 @@ export default function AdminVideosPage() {
   // Reprocess video mutation
   const reprocessMutation = useMutation({
     mutationFn: async (videoId: string) => {
-      const response = await fetch(`/api/admin/videos/${videoId}/reprocess`, {
-        method: 'POST',
+      const response = await fetch(`/api/admin/videos/${videoId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'reprocess' }),
       })
       if (!response.ok) throw new Error('Failed to reprocess video')
       return response.json()
@@ -252,7 +257,31 @@ export default function AdminVideosPage() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filtros</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Filtros</CardTitle>
+            <ExportButton
+              data={videos}
+              filename={`videos-export-${new Date().toISOString().split('T')[0]}`}
+              onExport={async () => {
+                // Fetch all videos with current filters
+                try {
+                  const params = new URLSearchParams()
+                  if (statusFilter !== 'all') params.append('status', statusFilter)
+                  if (providerFilter !== 'all') params.append('provider', providerFilter)
+                  if (debouncedSearch) params.append('search', debouncedSearch)
+                  params.append('limit', '1000') // Get all videos for export
+                  
+                  const response = await fetch(`/api/admin/videos?${params.toString()}`)
+                  if (!response.ok) throw new Error('Failed to fetch videos')
+                  const data = await response.json()
+                  return data.videos
+                } catch (error) {
+                  console.error('Export error:', error)
+                  return videos // Return current page as fallback
+                }
+              }}
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">

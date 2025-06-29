@@ -45,7 +45,7 @@ const faqItems = [
   {
     id: '6',
     question: 'What payment methods do you accept?',
-    answer: 'We accept all major credit cards (Visa, Mastercard, American Express), and for Brazilian customers, we also support PIX, boleto, and local credit cards through our Asaas integration.'
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through our secure Stripe payment processing.'
   },
   {
     id: '7',

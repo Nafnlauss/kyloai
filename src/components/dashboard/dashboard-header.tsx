@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Video, Home, Settings, LogOut } from 'lucide-react'
+import { Video, Home, Settings, LogOut, Users } from 'lucide-react'
 
 export function DashboardHeader() {
   return (
@@ -37,6 +37,12 @@ export function DashboardHeader() {
               <Link href="/dashboard/gallery">
                 <Video className="h-4 w-4 mr-2" />
                 Galeria
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/referrals">
+                <Users className="h-4 w-4 mr-2" />
+                Referrals
               </Link>
             </Button>
           </nav>

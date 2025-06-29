@@ -69,6 +69,7 @@ prisma/dev.db-journal
 .env.production
 .env.production.local
 .env.development.local
+.env-backup/
 
 # Security - NUNCA commitar
 *.key
@@ -100,3 +101,6 @@ Thumbs.db
 
 # Build artifacts
 .turbo/
+
+# Sentry Config File
+.env.sentry-build-plugin

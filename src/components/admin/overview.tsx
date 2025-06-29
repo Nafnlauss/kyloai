@@ -34,7 +34,7 @@ export function Overview({ data }: OverviewProps) {
           fontSize={12}
           tickLine={false}
           axisLine={false}
-          tickFormatter={(value) => `R$ ${value}`}
+          tickFormatter={(value) => `$${value}`}
         />
         <Tooltip
           contentStyle={{
@@ -43,7 +43,7 @@ export function Overview({ data }: OverviewProps) {
             borderRadius: '6px',
           }}
           labelStyle={{ color: 'hsl(var(--foreground))' }}
-          formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR')}`, 'Revenue']}
+          formatter={(value: number) => [`$${value.toLocaleString('en-US')}`, 'Revenue']}
         />
         <Bar
           dataKey="total"

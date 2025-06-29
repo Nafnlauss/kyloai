@@ -124,7 +124,7 @@ export default function PricingPage() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              Mensal
+              Monthly
             </button>
             <button
               type="button"
@@ -136,12 +136,12 @@ export default function PricingPage() {
                   : "text-muted-foreground hover:text-foreground"
               )}
             >
-              Anual
+              Yearly
             </button>
           </div>
           {isYearly && (
             <Badge variant="secondary" className="text-xs">
-              Economize 20%
+              Save 20%
             </Badge>
           )}
         </div>
@@ -152,7 +152,7 @@ export default function PricingPage() {
         <div className="grid gap-8 md:grid-cols-3">
           {plans.map((plan) => {
             const price = isYearly ? formatPrice(plan.yearlyPrice) : formatPrice(plan.monthlyPrice)
-            const interval = isYearly ? '/ano' : '/mês'
+            const interval = isYearly ? '/year' : '/month'
             
             return (
               <Card 
@@ -178,7 +178,7 @@ export default function PricingPage() {
                     </div>
                     {isYearly && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        {formatPrice(Math.round(plan.yearlyPrice / 12))}/mês cobrado anualmente
+                        {formatPrice(Math.round(plan.yearlyPrice / 12))}/month billed annually
                       </p>
                     )}
                   </div>
@@ -188,24 +188,24 @@ export default function PricingPage() {
                       <Sparkles className="h-5 w-5 text-primary" />
                       <span className="font-semibold">
                         {isYearly 
-                          ? `${((plan as any).yearlyCredits || plan.monthlyCredits * 12).toLocaleString('pt-BR')} créditos anuais`
-                          : `${plan.monthlyCredits} créditos/mês`
+                          ? `${((plan as any).yearlyCredits || plan.monthlyCredits * 12).toLocaleString()} annual credits`
+                          : `${plan.monthlyCredits} credits/month`
                         }
                       </span>
                     </div>
                     {isYearly ? (
                       <p className="text-xs text-green-600 mt-2 font-medium">
-                        ✓ Créditos acumulativos - use quando quiser
+                        ✓ Accumulative credits - use anytime
                       </p>
                     ) : (
                       <p className="text-xs text-orange-600 mt-2 font-medium">
-                        ⚠️ Créditos não acumulam - renovam mensalmente
+                        ⚠️ Credits don't accumulate - monthly renewal
                       </p>
                     )}
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-sm font-medium">Incluído:</p>
+                    <p className="text-sm font-medium">Included:</p>
                     {plan.features.map((feature) => (
                       <div key={feature} className="flex items-start gap-2">
                         <Check className="h-4 w-4 text-green-600 mt-0.5 shrink-0" />
@@ -267,7 +267,7 @@ export default function PricingPage() {
                         Processing...
                       </>
                     ) : (
-                      'Começar Agora'
+                      'Get Started'
                     )}
                   </Button>
                 </CardFooter>
@@ -297,7 +297,7 @@ export default function PricingPage() {
                   {pack.maximum && <Badge className="w-fit">Maximum Savings</Badge>}
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{pack.credits.toLocaleString('pt-BR')} créditos</div>
+                  <div className="text-2xl font-bold">{pack.credits.toLocaleString()} credits</div>
                   <div className="text-muted-foreground">{formatPrice(pack.price)}</div>
                   {pack.savings && (
                     <div className="text-xs text-green-600 mt-1">{pack.savings}</div>
@@ -314,7 +314,7 @@ export default function PricingPage() {
                     {loadingPack === pack.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      'Comprar Agora'
+                      'Buy Now'
                     )}
                   </Button>
                 </CardFooter>
