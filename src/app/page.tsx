@@ -61,9 +61,6 @@ export default function HomePage() {
             <Link href="#credit-usage" className="text-sm text-muted-foreground hover:text-foreground transition">
               Credit Usage
             </Link>
-            <Link href="#examples" className="text-sm text-muted-foreground hover:text-foreground transition">
-              Examples
-            </Link>
           </nav>
           
           <div className="flex items-center space-x-4">
@@ -101,9 +98,9 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="#examples">
-                  <Play className="mr-2 h-4 w-4" />
-                  View Examples
+                <Link href="#credit-usage">
+                  <Coins className="mr-2 h-4 w-4" />
+                  View Credit Usage
                 </Link>
               </Button>
             </div>
@@ -124,12 +121,72 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Demo Video */}
-          <div className="mt-16 relative max-w-4xl mx-auto">
-            <div className="aspect-video rounded-xl bg-gradient-to-br from-primary/20 to-violet-600/20 p-1">
-              <DemoVideo />
+          {/* Experience Banner */}
+          <Link href="#pricing" className="mt-16 relative max-w-4xl mx-auto group block">
+            <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/20 to-violet-600/20 p-1 transition-all duration-500 group-hover:from-primary/30 group-hover:to-violet-600/30 cursor-pointer">
+              <div className="relative h-64 rounded-lg bg-gradient-to-br from-primary/10 via-violet-600/10 to-primary/10 flex items-center justify-center overflow-hidden transition-all duration-500 group-hover:scale-[1.02]">
+                {/* Animated background particles - increased amount */}
+                <div className="absolute inset-0">
+                  {[...Array(500)].map((_, i) => {
+                    // Generate stable pseudo-random values based on index
+                    const seed = i * 7.17;
+                    const left = ((seed * 13.21) % 100);
+                    const startTop = 100 + ((seed * 17.43) % 20); // Start below the container
+                    const delay = ((seed * 3.14) % 8);
+                    const duration = 8 + ((seed * 5.27) % 7); // 8-15 seconds
+                    
+                    // More size variations for ash/soot effect
+                    let size = 'w-[2px] h-[2px]';
+                    if (i % 3 === 0) size = 'w-[0.5px] h-[0.5px]';
+                    else if (i % 4 === 0) size = 'w-1 h-1';
+                    else if (i % 5 === 0) size = 'w-[1.5px] h-[1.5px]';
+                    else if (i % 7 === 0) size = 'w-[3px] h-[3px]';
+                    else if (i % 11 === 0) size = 'w-[4px] h-[4px]';
+                    
+                    // Varying opacity for depth - white particles
+                    let colorClass = 'bg-white/30';
+                    if (i % 3 === 0) colorClass = 'bg-white/50';
+                    else if (i % 5 === 0) colorClass = 'bg-white/40';
+                    else if (i % 7 === 0) colorClass = 'bg-white/45';
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`absolute ${size} ${colorClass} rounded-full animate-float-up transition-all duration-500 group-hover:bg-white/60`}
+                        style={{
+                          left: `${left}%`,
+                          top: `${startTop}%`,
+                          animationDelay: `${delay}s`,
+                          animationDuration: `${duration}s`
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+                
+                {/* Main content */}
+                <div className="relative z-10 text-center space-y-4 transition-all duration-500 group-hover:scale-105">
+                  <div className="inline-flex items-center gap-2 text-primary mb-2">
+                    <Sparkles className="w-5 h-5 animate-pulse transition-all duration-500 group-hover:scale-125 group-hover:animate-spin" />
+                    <span className="text-sm font-medium uppercase tracking-wider">New Experience</span>
+                    <Sparkles className="w-5 h-5 animate-pulse transition-all duration-500 group-hover:scale-125 group-hover:animate-spin" />
+                  </div>
+                  
+                  <h3 className="text-4xl md:text-5xl font-bold text-white transition-all duration-500 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-violet-400">
+                    Meet Kylo
+                  </h3>
+                  
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto transition-all duration-500 group-hover:text-white/80">
+                    An immersive journey into the future of AI content creation
+                  </p>
+                </div>
+                
+                {/* Decorative elements */}
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl transition-all duration-500 group-hover:w-60 group-hover:h-60 group-hover:bg-primary/30" />
+                <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-violet-600/20 rounded-full blur-3xl transition-all duration-500 group-hover:w-60 group-hover:h-60 group-hover:bg-violet-600/30" />
+              </div>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 
@@ -701,9 +758,9 @@ export default function HomePage() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#features" target="_blank" rel="noopener noreferrer" aria-label="Open Resources in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Resources</a></li>
-                <li><a href="#pricing" target="_blank" rel="noopener noreferrer" aria-label="Open Pricing in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Pricing</a></li>
-                <li><a href="#examples" target="_blank" rel="noopener noreferrer" aria-label="Open Examples in a new tab" className="text-sm text-muted-foreground hover:text-foreground">Examples</a></li>
+                <li><a href="#features" className="text-sm text-muted-foreground hover:text-foreground">Resources</a></li>
+                <li><a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground">Pricing</a></li>
+                <li><a href="#credit-usage" className="text-sm text-muted-foreground hover:text-foreground">Credit Usage</a></li>
               </ul>
             </div>
             
